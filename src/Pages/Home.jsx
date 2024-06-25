@@ -1,11 +1,17 @@
 import React from 'react'
+import Navbar from '../components/layout/Navbar'
+import Sidebar from '../components/testLayout/Sidebar'
+import ChatWindow from '../components/testLayout/ChatWindow'
 
 const Home = () => {
-  return (
-    <div className='flex flex-col justify-center items-center bg-rose-500 gap-5 min-h-screen'>
-      <a href="/login"><button className='border-2 border-purple-700 bg-cyan-400 p-5 rounded'>Login</button></a>
-      <a href="/register"><button className='border-2 border-purple-700 bg-cyan-400 p-5 rounded'>Register</button></a>
+  return (<>
+  {/* <Navbar /> */}
+  <div className="flex h-[calc(100dvh)]">
+      <Sidebar />
+      
+      <ChatWindow />
     </div>
+    </>
   )
 }
 

@@ -3,13 +3,15 @@
 import React from "react";
 // import AnimatedBackground1 from '../components/backgrounds/AnimatedBackground1';
 import AnimatedVanta from "../components/backgrounds/AnimatedVanta";
+import { useNavigate } from "react-router-dom";
 
 const Login = () => {
+  const navigate = useNavigate();
   return (
     <div className="text-white">
       <AnimatedVanta />
       {/* <AnimatedBackground1 /> */}
-      <div className="flex items-center justify-center h-screen">
+      <div className="flex items-center justify-center h-[calc(100dvh)]">
         <form className="bg-gray-800 bg-opacity-90 p-8 rounded-lg shadow-lg text-center text-white">
           <h2 className="text-3xl mb-6">Login</h2>
           <div className="mb-4">
@@ -46,9 +48,9 @@ const Login = () => {
             <p>OR</p>
           </div>
           <div className="text-center mt-4">
-            <a href="/register" className="text-purple-600">
+            <p onClick={()=> navigate('/register')} className="text-purple-600 cursor-pointer">
               REGISTER INSTEAD
-            </a>
+            </p>
           </div>
         </form>
         

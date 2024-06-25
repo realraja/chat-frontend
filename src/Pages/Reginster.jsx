@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import AnimatedVanta from "../components/backgrounds/AnimatedVanta";
 import CropModal from "../components/CropModal";
+import { Link } from "react-router-dom";
 
 function Register() {
   const [photo, setPhoto] = useState(
@@ -35,6 +36,7 @@ function Register() {
 
   const handleSubmit = (event) => {
     event.preventDefault();
+    console.log(photo,selectedPhoto)
     if (
       !formData.name ||
       !formData.bio ||
@@ -63,7 +65,7 @@ function Register() {
   return (
     <>
       <AnimatedVanta />
-      <div className="flex items-center justify-center h-screen text-white relative">
+      <div className="flex items-center justify-center h-[calc(100dvh)] text-white relative">
         <div className="bg-gray-800 bg-opacity-90 p-6 rounded-lg shadow-lg w-96 z-10">
           <h2 className="text-2xl font-bold mb-6 text-center">Sign Up</h2>
           <div className="flex justify-center mb-4 relative w-24 m-auto ">
@@ -152,9 +154,9 @@ function Register() {
             <p>OR</p>
           </div>
           <div className="text-center mt-4">
-            <a href="/login" className="text-purple-600">
+            <Link to="/login" className="text-purple-600">
               LOGIN INSTEAD
-            </a>
+            </Link>
           </div>
         </div>
         {showCropModal && (

@@ -28,7 +28,7 @@ const AnimatedVanta = () => {
     };
   }, []);
 
-  return <div ref={vantaRef} className="fixed top-0 left-0 w-full  min-h-screen z-[-1]" />;
+  return <div ref={vantaRef} className="fixed top-0 left-0 w-full  min-h-[calc(100dvh)] z-[-1]" />;
 };
 
 export default AnimatedVanta;

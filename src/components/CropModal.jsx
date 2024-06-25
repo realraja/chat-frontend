@@ -17,7 +17,7 @@ const CropModal = ({ photo, onSave, onCancel }) => {
   };
 
   return (
-    <div className="fixed inset-0 flex flex-col items-center justify-center bg-black bg-opacity-75 z-50">
+    <div className="fixed h-[calc(100dvh)] w-full  inset-0 flex flex-col items-center justify-center bg-red-700 bg-opacity-75 z-50">
 
         <Cropper
           image={photo}
@@ -30,7 +30,7 @@ const CropModal = ({ photo, onSave, onCancel }) => {
         />
 
       {/* <div className="bg-white p-4 rounded shadow-lg flex rela"> */}
-        <div className="relative items-center mb-4 mt-[90vh]">
+        <div className="relative  -bottom-64 ">
           <button
             className="bg-red-500 text-white px-4 py-2 rounded mr-2"
             onClick={onCancel}

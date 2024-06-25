@@ -1,25 +1,35 @@
-import React, { lazy } from 'react'
-import {BrowserRouter,Routes,Route} from 'react-router-dom'
+import React, { Suspense, lazy } from "react";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import ProtectedRoute from "./components/auth/ProtectedRoute";
 
-const Login = lazy(()=> import('./Pages/Login'));
-const Register = lazy(()=> import('./Pages/Reginster'));
-const Home = lazy(()=> import('./Pages/Home'));
+const Login = lazy(() => import("./Pages/Login"));
+const Register = lazy(() => import("./Pages/Reginster"));
+const Home = lazy(() => import("./Pages/Home"));
+const Profile = lazy(() => import("./Pages/Profile"));
 
-// let user = true;
+let user = true;
 
 const App = () => {
-  
   return (
     <BrowserRouter>
+    <Suspense fallback={<div>Loading...</div>}>
       <Routes>
-      <Route path='/' element={<Home />} />
-      <Route path='/login' element={<Login />} />
-      <Route path='/register' element={<Register />} />
-        {/* // <Route element={<}>
-        // </Route> */}
-      </Routes>
-    </BrowserRouter>
-  )
-}
+        <Route element={<ProtectedRoute user={user} />}>
+          <Route path="/" element={<Home />} />
+          <Route path="/profile" element={<Profile />} />
+        </Route>
 
-export default App
+        
+          <Route path="/login" element={<ProtectedRoute user={!user} redirect="/" ><Login /></ProtectedRoute>} />
+          <Route path="/register" element={<ProtectedRoute user={!user} redirect="/" ><Register /></ProtectedRoute>} />  
+                  
+          <Route path="*" element={<Register />} />   
+      </Routes>
+      </Suspense>
+    </BrowserRouter>
+  );
+};
+
+export default App;
+
+
