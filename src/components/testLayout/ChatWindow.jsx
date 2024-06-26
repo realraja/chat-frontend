@@ -104,7 +104,7 @@ const ChatWindow = () => {
     const [message, setMessage] = useState('')
 
   return (
-    <div className="max-sm:w-full sm:w-full md:w-3/4 h-screen flex flex-col bg-gray-900 text-white relative">
+    <div className="max-sm:w-full sm:w-full md:w-3/4 h-[calc(100dvh)] flex flex-col bg-gray-900 text-white relative max-sm:hidden sm:hidden md:flex">
       <div className="p-3 border-b border-gray-700 flex justify-between items-center  cursor-pointer">
         <div className="flex">
           <img

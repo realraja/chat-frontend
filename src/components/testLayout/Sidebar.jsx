@@ -1,66 +1,136 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
+const conversations = [
+  {
+    name: "Telegram",
+    lastMessage: "Login code: ****. Do not give this code to anyone.",
+    time: "01:19 PM",
+    imageUrl:
+      "https://img.freepik.com/premium-photo/cute-handsome-anime-boy_675932-411.jpg",
+  },
+  {
+    name: "Milkha 97834 51057",
+    lastMessage: "Milkha 97834 51057 joined Telegram",
+    time: "Fri",
+    imageUrl:
+      "https://img.freepik.com/premium-photo/cute-handsome-anime-boy_675932-411.jpg",
+  },
+  {
+    name: "Trilok",
+    lastMessage: "Trilok joined Telegram",
+    time: "Fri",
+    imageUrl:
+      "https://img.freepik.com/premium-photo/cute-handsome-anime-boy_675932-411.jpg",
+  },
+  {
+    name: "Trilok",
+    lastMessage: "Trilok joined Telegram",
+    time: "Fri",
+    imageUrl:
+      "https://img.freepik.com/premium-photo/cute-handsome-anime-boy_675932-411.jpg",
+  },
+  {
+    name: "Trilok",
+    lastMessage: "Trilok joined Telegram",
+    time: "Fri",
+    imageUrl:
+      "https://img.freepik.com/premium-photo/cute-handsome-anime-boy_675932-411.jpg",
+  },
+  {
+    name: "Trilok",
+    lastMessage: "Trilok joined Telegram",
+    time: "Fri",
+    imageUrl:
+      "https://img.freepik.com/premium-photo/cute-handsome-anime-boy_675932-411.jpg",
+  },
+  {
+    name: "Trilok",
+    lastMessage: "Trilok joined Telegram",
+    time: "Fri",
+    imageUrl:
+      "https://img.freepik.com/premium-photo/cute-handsome-anime-boy_675932-411.jpg",
+  },
+  {
+    name: "Trilok",
+    lastMessage: "Trilok joined Telegram",
+    time: "Fri",
+    imageUrl:
+      "https://img.freepik.com/premium-photo/cute-handsome-anime-boy_675932-411.jpg",
+  },
+  {
+    name: "Trilok",
+    lastMessage: "Trilok joined Telegram",
+    time: "Fri",
+    imageUrl:
+      "https://img.freepik.com/premium-photo/cute-handsome-anime-boy_675932-411.jpg",
+  },
+  {
+    name: "Trilok",
+    lastMessage: "Trilok joined Telegram",
+    time: "Fri",
+    imageUrl:
+      "https://img.freepik.com/premium-photo/cute-handsome-anime-boy_675932-411.jpg",
+  },
+  {
+    name: "Saved Messages",
+    lastMessage: "RAKESH KUMAR4095833.pdf",
+    time: "Fri",
+    imageUrl:
+      "https://img.freepik.com/premium-photo/cute-handsome-anime-boy_675932-411.jpg",
+  },
+  {
+    name: "Aakash",
+    lastMessage: "Photo",
+    time: "Wed",
+    imageUrl:
+      "https://img.freepik.com/premium-photo/cute-handsome-anime-boy_675932-411.jpg",
+  },
+  {
+    name: "Gurbhej",
+    lastMessage: "O ta nai pta",
+    time: "Wed",
+    imageUrl:
+      "https://img.freepik.com/premium-photo/cute-handsome-anime-boy_675932-411.jpg",
+  },
+  {
+    name: "Papa Ji",
+    lastMessage: "1000062193.jpg",
+    time: "Tue",
+    imageUrl:
+      "https://img.freepik.com/premium-photo/cute-handsome-anime-boy_675932-411.jpg",
+  },
+  // Add more conversations as needed
+];
 const Sidebar = () => {
     
   const [isOpen, setIsOpen] = useState(false);
-  const conversations = [
-    {
-      name: "Telegram",
-      lastMessage: "Login code: ****. Do not give this code to anyone.",
-      time: "01:19 PM",
-      imageUrl:
-        "https://img.freepik.com/premium-photo/cute-handsome-anime-boy_675932-411.jpg",
-    },
-    {
-      name: "Milkha 97834 51057",
-      lastMessage: "Milkha 97834 51057 joined Telegram",
-      time: "Fri",
-      imageUrl:
-        "https://img.freepik.com/premium-photo/cute-handsome-anime-boy_675932-411.jpg",
-    },
-    {
-      name: "Trilok",
-      lastMessage: "Trilok joined Telegram",
-      time: "Fri",
-      imageUrl:
-        "https://img.freepik.com/premium-photo/cute-handsome-anime-boy_675932-411.jpg",
-    },
-    {
-      name: "Saved Messages",
-      lastMessage: "RAKESH KUMAR4095833.pdf",
-      time: "Fri",
-      imageUrl:
-        "https://img.freepik.com/premium-photo/cute-handsome-anime-boy_675932-411.jpg",
-    },
-    {
-      name: "Aakash",
-      lastMessage: "Photo",
-      time: "Wed",
-      imageUrl:
-        "https://img.freepik.com/premium-photo/cute-handsome-anime-boy_675932-411.jpg",
-    },
-    {
-      name: "Gurbhej",
-      lastMessage: "O ta nai pta",
-      time: "Wed",
-      imageUrl:
-        "https://img.freepik.com/premium-photo/cute-handsome-anime-boy_675932-411.jpg",
-    },
-    {
-      name: "Papa Ji",
-      lastMessage: "1000062193.jpg",
-      time: "Tue",
-      imageUrl:
-        "https://img.freepik.com/premium-photo/cute-handsome-anime-boy_675932-411.jpg",
-    },
-    // Add more conversations as needed
-  ];
+  const dropdownRef = useRef(null);
 
+  const navigate = useNavigate();
+
+  const handleClickOutside = (event) => {
+    if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+      setIsOpen(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isOpen) {
+      document.addEventListener('click', handleClickOutside);
+    } else {
+      document.removeEventListener('click', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+    };
+  }, [isOpen]);
   return (
-    <div className="w-1/4 bg-gray-800 text-white h-screen  max-sm:hidden sm:hidden md:block">
-      <div className="flex h-full flex-col">
-        <div className="h-fit flex justify-between items-center gap-5 py-3 px-2 border-b border-gray-700">
-          <svg
+    <div className="max-sm:w-full sm:w-full md:w-1/4 bg-gray-800 text-white h-[calc(100dvh)] ">
+      <div className="flex h-full flex-col" >
+        <div  className="h-fit flex justify-between items-center gap-5 py-3 px-2 border-b border-gray-700">
+          <svg  ref={dropdownRef}        
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"
@@ -84,7 +154,7 @@ const Sidebar = () => {
           />
         </div>
         {isOpen && (
-        <div onBlur={()=> setIsOpen(false)} className="absolute top-0 left-0 mt-12 ml-2 w-64 bg-gray-600 bg-opacity-85 text-white rounded-lg shadow-lg p-4">
+        <div  on={()=> setIsOpen(false)} className="absolute top-0 left-0 mt-12 ml-2 w-64 bg-purple-950 bg-opacity-85 text-white rounded-lg shadow-lg p-4">
           <ul>
             <li className=" cursor-pointer p-2 hover:bg-gray-700 rounded flex items-center">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6 mr-2">
@@ -93,11 +163,11 @@ const Sidebar = () => {
 
               Saved Messages
             </li>
-            <li className=" cursor-pointer p-2 hover:bg-gray-700 rounded flex items-center">
+            <li onClick={()=> navigate('/profile')} className=" cursor-pointer p-2 hover:bg-gray-700 rounded flex items-center">
               <svg className="h-6 w-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 10l5-5m0 0l5 5m-5-5v12" />
               </svg>
-              Contacts
+              Profile
             </li>
             <li className=" cursor-pointer p-2 hover:bg-gray-700 rounded flex items-center">
               <svg className="h-6 w-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
