@@ -1,6 +1,7 @@
 import React, { Suspense, lazy } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
+import NotFound from "./Pages/NotFound";
 
 const Login = lazy(() => import("./Pages/Login"));
 const Register = lazy(() => import("./Pages/Reginster"));
@@ -16,6 +17,7 @@ const App = () => {
       <Routes>
         <Route element={<ProtectedRoute user={user} />}>
           <Route path="/" element={<Home />} />
+          <Route path="/chat/:id" element={<Home />} />
           <Route path="/profile" element={<Profile />} />
         </Route>
 
@@ -23,7 +25,7 @@ const App = () => {
           <Route path="/login" element={<ProtectedRoute user={!user} redirect="/" ><Login /></ProtectedRoute>} />
           <Route path="/register" element={<ProtectedRoute user={!user} redirect="/" ><Register /></ProtectedRoute>} />  
                   
-          <Route path="*" element={<Register />} />   
+          <Route path="*" element={<NotFound />} />   
       </Routes>
       </Suspense>
     </BrowserRouter>

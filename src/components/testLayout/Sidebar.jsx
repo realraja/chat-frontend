@@ -102,7 +102,7 @@ const conversations = [
   },
   // Add more conversations as needed
 ];
-const Sidebar = () => {
+const Sidebar = ({id}) => {
     
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
@@ -127,7 +127,7 @@ const Sidebar = () => {
     };
   }, [isOpen]);
   return (
-    <div className="max-sm:w-full sm:w-full md:w-1/4 bg-gray-800 text-white h-[calc(100dvh)] ">
+    <div className={`max-sm:w-full sm:w-full md:w-1/4 bg-gray-800 text-white h-[calc(100dvh)] ${id?'max-sm:hidden sm:hidden md:block':''}`}>
       <div className="flex h-full flex-col" >
         <div  className="h-fit flex justify-between items-center gap-5 py-3 px-2 border-b border-gray-700">
           <svg  ref={dropdownRef}        
@@ -154,7 +154,7 @@ const Sidebar = () => {
           />
         </div>
         {isOpen && (
-        <div  on={()=> setIsOpen(false)} className="absolute top-0 left-0 mt-12 ml-2 w-64 bg-purple-950 bg-opacity-85 text-white rounded-lg shadow-lg p-4">
+        <div  className="absolute top-0 left-0 mt-12 ml-2 w-64 bg-purple-950 bg-opacity-85 text-white rounded-lg shadow-lg p-4 ">
           <ul>
             <li className=" cursor-pointer p-2 hover:bg-gray-700 rounded flex items-center">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6 mr-2">
@@ -227,6 +227,7 @@ const Sidebar = () => {
         <ul>
           {conversations.map((conv, index) => (
             <li
+            onClick={()=> navigate('/chat/'+conv.name)}
               key={index}
               className="mb-4 cursor-pointer hover:bg-gray-700 p-2 rounded flex items-center"
             >
