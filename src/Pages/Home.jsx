@@ -16,7 +16,7 @@ const Home = () => {
       
       <ChatWindow id={params.id} setShowInfo={setUserInfoShow} showInfo={userInfoShow} />
 
-      <UserInfo setShowInfo={setUserInfoShow} showInfo={userInfoShow} />
+      <UserInfo id={params.id} setShowInfo={setUserInfoShow} showInfo={userInfoShow} />
     </div>
     </>
   )

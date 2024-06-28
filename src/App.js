@@ -2,6 +2,7 @@ import React, { Suspense, lazy } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import NotFound from "./Pages/NotFound";
+import MainLoader from "./components/loaders/MainLoader";
 
 const Login = lazy(() => import("./Pages/Login"));
 const Register = lazy(() => import("./Pages/Reginster"));
@@ -13,7 +14,7 @@ let user = true;
 const App = () => {
   return (
     <BrowserRouter>
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={<MainLoader />}>
       <Routes>
         <Route element={<ProtectedRoute user={user} />}>
           <Route path="/" element={<Home />} />

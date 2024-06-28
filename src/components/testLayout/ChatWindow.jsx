@@ -106,7 +106,7 @@ const ChatWindow = ({ id , setShowInfo,showInfo}) => {
 
   return (
     <div
-      className={`max-sm:w-full sm:w-full ${showInfo?'md:w-1/2':'md:w-3/4'} h-[calc(100dvh)] flex flex-col bg-gray-900 text-white relative ${
+      className={` ${showInfo?'max-sm:hidden sm:hidden md:flex md:w-1/2':'max-sm:w-full sm:w-full md:w-3/4'} h-[calc(100dvh)] flex flex-col bg-gray-900 text-white relative ${
         id ? "" : "max-sm:hidden sm:hidden md:flex"
       }`}
     >
@@ -248,6 +248,8 @@ const ChatWindow = ({ id , setShowInfo,showInfo}) => {
         )}
       </form>
     </div>
+
+    
   );
 };
 

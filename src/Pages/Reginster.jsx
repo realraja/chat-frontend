@@ -1,7 +1,9 @@
 import React, { useState } from "react";
 import AnimatedVanta from "../components/backgrounds/AnimatedVanta";
-import CropModal from "../components/CropModal";
 import { Link } from "react-router-dom";
+import CropModal from "../modals/CropModal";
+import ModalImage from "react-modal-image";
+import Title from "../components/shared/Title";
 
 function Register() {
   const [photo, setPhoto] = useState(
@@ -64,17 +66,24 @@ function Register() {
 
   return (
     <>
+    <Title title="Register" description="Chat app Register" />
       <AnimatedVanta />
       <div className="flex items-center justify-center h-[calc(100dvh)] text-white relative">
         <div className="bg-gray-800 bg-opacity-90 p-6 rounded-lg shadow-lg w-96 z-10">
           <h2 className="text-2xl font-bold mb-6 text-center">Sign Up</h2>
           <div className="flex justify-center mb-4 relative w-24 m-auto ">
-            <img
+            {/* <img
               id="profile-pic"
               className="w-24 h-24 rounded-full object-cover"
               src={photo}
               alt="Profile"
-            />
+            /> */}
+            <ModalImage
+        small={photo}
+        large={photo} // Replace with your actual image URL
+        alt="Preview Image"
+        className="w-24 h-24 rounded-full object-cover"
+      />
             <input
               type="file"
               id="photo-upload"

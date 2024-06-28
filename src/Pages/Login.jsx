@@ -4,10 +4,12 @@ import React from "react";
 // import AnimatedBackground1 from '../components/backgrounds/AnimatedBackground1';
 import AnimatedVanta from "../components/backgrounds/AnimatedVanta";
 import { useNavigate } from "react-router-dom";
+import Title from "../components/shared/Title";
 
 const Login = () => {
   const navigate = useNavigate();
-  return (
+  return (<>
+  <Title title="Login" description="Chat app login" />
     <div className="text-white">
       <AnimatedVanta />
       {/* <AnimatedBackground1 /> */}
@@ -55,7 +57,7 @@ const Login = () => {
         </form>
         
       </div>
-    </div>
+    </div></>
   );
 };
 
