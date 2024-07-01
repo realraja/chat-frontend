@@ -11,7 +11,7 @@ const UserInfo = ({ showInfo, setShowInfo, id }) => {
     "https://img.freepik.com/premium-photo/cute-handsome-anime-boy_675932-411.jpg",
   ];
 
-  const [currentImageIndex, setCurrentImageIndex] = useState(images.length-1);
+  const [currentImageIndex, setCurrentImageIndex] = useState(images.length - 1);
 
   const handleNextImage = () => {
     setCurrentImageIndex((prevIndex) =>
@@ -25,14 +25,13 @@ const UserInfo = ({ showInfo, setShowInfo, id }) => {
     );
   };
 
-
   // console.log(moment('2023-10-05T17:18:01.959Z').fromNow())
 
   return (
     <div
-      className={`max-sm:w-full sm:w-full md:w-1/4 bg-gray-800 text-white ${
+      className={`max-sm:w-full sm:w-full md:w-1/4 flex flex-col bg-gray-800 max-h-[calc(100dvh)] text-white ${
         showInfo ? "" : "hidden"
-      } ${id ? "" : "max-sm:hidden sm:hidden md:block"}`}
+      } ${id ? "" : "max-sm:hidden sm:hidden md:flex"}`}
     >
       {/* <ModalImage
   small={"https://i.pinimg.com/originals/74/62/97/746297d9c22c5262fc359dac640c23b4.gif"}
@@ -75,48 +74,98 @@ const UserInfo = ({ showInfo, setShowInfo, id }) => {
           <h2 className="text-2xl font-bold">User Info</h2>
         </div>
       </div>
-      <div className="flex flex-col items-center mb-4">
-        <div className="relative w-full">
-          <h1 className="absolute mt-3 left-1/2 top-0 transform -translate-y-1/2 text-2xl">{currentImageIndex+1}/{images.length}</h1>
-          {/* <img
-            src={images[currentImageIndex]}
-            alt="User Profile"
-            className="w-full h-96 object-cover"
-          /> */}
-          <ModalImage
-        small={images[currentImageIndex]}
-        large={images[currentImageIndex]} // Replace with your actual image URL
-        alt="Preview Image"
-        className="w-full h-96 object-cover"
-      />
-          <button
-            onClick={handlePrevImage}
-            className="absolute left-0 top-1/2 transform -translate-y-1/2  text-gray-600 hover:text-white  text-5xl h-full pr-5 pl-5 p-1"
-          >
-            &lt;
-          </button>
-          <button
-            onClick={handleNextImage}
-            className="absolute right-0 top-1/2 transform -translate-y-1/2 text-gray-600 hover:text-white text-5xl h-full pr-5 pl-5 p-1 "
-          >
-            &gt;
-          </button>
+      <div className="h-full overflow-auto scrollEditclass">
+        <div className="flex flex-col items-center">
+          <div className="relative w-full">
+            <h1 className="absolute mt-3 left-1/2 top-0 transform -translate-y-1/2 text-2xl">
+              {currentImageIndex + 1}/{images.length}
+            </h1>
+            <ModalImage
+              small={images[currentImageIndex]}
+              large={images[currentImageIndex]} // Replace with your actual image URL
+              alt="Preview Image"
+              className="w-full h-96 object-cover"
+            />
+            <button
+              onClick={handlePrevImage}
+              className="absolute left-0 top-1/2 transform -translate-y-1/2  text-gray-600 hover:text-white  text-5xl h-full pr-5 pl-5 p-1"
+            >
+              &lt;
+            </button>
+            <button
+              onClick={handleNextImage}
+              className="absolute right-0 top-1/2 transform -translate-y-1/2 text-gray-600 hover:text-white text-5xl h-full pr-5 pl-5 p-1 "
+            >
+              &gt;
+            </button>
+          </div>
         </div>
-        <div>
-          <h3 className="font-bold">Aakash</h3>
-          <p className="text-sm text-gray-400">last seen 1 hour ago</p>
+        <div className="my-4 flex flex-col gap-2">
+          <div className="flex w-[90%] rounded-xl hover:bg-gray-600 items-center p-2 m-auto gap-5 cursor-pointer ">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={1.5}
+              stroke="currentColor"
+              className="size-6"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"
+              />
+            </svg>
+            <div>
+              <h3 className="font-bold">Aakash</h3>
+              <p className="text-sm text-gray-400">
+                last seen {moment("2023-10-05T17:18:01.959Z").fromNow()}
+              </p>
+            </div>
+          </div>
+          <div className="flex w-[90%] rounded-xl hover:bg-gray-600 items-center p-2 m-auto gap-5 cursor-pointer ">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={1.5}
+              stroke="currentColor"
+              className="size-6"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M16.5 12a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0Zm0 0c0 1.657 1.007 3 2.25 3S21 13.657 21 12a9 9 0 1 0-2.636 6.364M16.5 12V8.25"
+              />
+            </svg>
+
+            <div>
+              <h3 className="font-bold">@realllraja</h3>
+              <p className="text-sm text-gray-400">Username</p>
+            </div>
+          </div>
+          <div className="flex w-[90%] rounded-xl hover:bg-gray-600 items-center p-2 m-auto gap-5 cursor-pointer ">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={1.5}
+              stroke="currentColor"
+              className="size-6"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z"
+              />
+            </svg>
+
+            <div>
+              <h3 className="font-bold">8005760975</h3>
+              <p className="text-sm text-gray-400">Phone</p>
+            </div>
+          </div>
         </div>
-      </div>
-      <div>
-        <p className="mb-2">
-          <i className="fas fa-phone mr-2"></i> +91 91664 24613
-        </p>
-        <p className="mb-2">
-          <i className="fas fa-user mr-2"></i> @Akashmoriya
-        </p>
-        <p className="mb-2">
-          <i className="fas fa-user mr-2"></i> {moment('2023-10-05T17:18:01.959Z').fromNow()}
-        </p>
       </div>
     </div>
   );
