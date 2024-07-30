@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { PacmanLoader } from 'react-spinners';
 
-const NotFound = () => {
+const Page = () => {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-white p-4">
       <motion.div
@@ -51,4 +51,4 @@ const NotFound = () => {
   );
 };
 
-export default NotFound;
+export default Page;

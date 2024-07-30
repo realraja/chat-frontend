@@ -11,7 +11,7 @@ export default function CreateGroupDialog({ confirmState, setConfirmState, runFu
   const addMember = (data) => {
     // console.log(data);
     setMembers([...data]);
-  };
+  }; 
 
   return (<>
     <Transition.Root show={confirmState} as={Fragment}>

@@ -45,15 +45,6 @@ const AudioRecorder = () => {
     setIsRecording(false);
   };
 
-  const handleSaveRecording = () => {
-    const a = document.createElement('a');
-    a.style.display = 'none';
-    a.href = mediaBlobUrl;
-    a.download = 'recording.wav';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-  };
 
   const formatTime = (milliseconds) => {
     const totalSeconds = Math.floor(milliseconds / 1000);
