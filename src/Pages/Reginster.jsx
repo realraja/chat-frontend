@@ -1,9 +1,13 @@
 import React, { useState } from "react";
 import AnimatedVanta from "../components/backgrounds/AnimatedVanta";
 import { Link } from "react-router-dom";
-import CropModal from "../modals/CropModal";
 import ModalImage from "react-modal-image";
 import Title from "../components/shared/Title";
+import toast from "react-hot-toast";
+import axios from "axios";
+import { config, server } from "../constants/config";
+import { useDispatch } from "react-redux";
+import { login } from "../redux/slicer/auth";
 
 function Register() {
   const [photo, setPhoto] = useState(
@@ -16,16 +20,17 @@ function Register() {
     username: "",
     password: "",
   });
-  const [showCropModal, setShowCropModal] = useState(false);
-  const [selectedPhoto, setSelectedPhoto] = useState(null);
+  const [testPhoto, setTestPhoto] = useState(null)
+
+  const dispatch = useDispatch();
 
   const handlePhotoChange = (event) => {
     const file = event.target.files[0];
+    setTestPhoto(file);
     if (file) {
       const reader = new FileReader();
       reader.onload = (e) => {
-        setSelectedPhoto(e.target.result);
-        setShowCropModal(true);
+        setPhoto(e.target.result);
       };
       reader.readAsDataURL(file);
     }
@@ -36,33 +41,35 @@ function Register() {
     setFormData({ ...formData, [id]: value });
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async(event) => {
     event.preventDefault();
-    console.log(photo,selectedPhoto)
+    setLoading(true)
     if (
       !formData.name ||
-      !formData.bio ||
       !formData.username ||
       !formData.password
     ) {
-      alert("All fields are required!");
+      toast.error("All fields are required!");
       return;
     }
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      alert("Sign Up Successful!");
-    }, 2000);
+    
+    const formagic = new FormData();
+    formagic.append('file',testPhoto);
+    formagic.append('username', formData.username);
+    formagic.append('name', formData.name);
+    formagic.append('password', formData.password);
+
+try {
+  const {data} = await axios.post(`${server}/user/register`,formagic,config);
+  dispatch(login(true));
+  toast.success(data.message);
+} catch (error) {
+  toast.error(error?.response?.data?.message);
+}    
+
   };
 
-  const handleSaveCroppedImage = (croppedImage) => {
-    setPhoto(croppedImage);
-    setShowCropModal(false);
-  };
 
-  const handleCancelCrop = () => {
-    setShowCropModal(false);
-  };
 
   return (
     <>
@@ -121,7 +128,7 @@ function Register() {
                 onChange={handleInputChange}
               />
             </div>
-            <div className="mb-4">
+            <div className="mb-4 hidden">
               <input
                 type="text"
                 id="bio"
@@ -168,13 +175,6 @@ function Register() {
             </Link>
           </div>
         </div>
-        {showCropModal && (
-          <CropModal
-            photo={selectedPhoto}
-            onSave={handleSaveCroppedImage}
-            onCancel={handleCancelCrop}
-          />
-        )}
       </div>
     </>
   );

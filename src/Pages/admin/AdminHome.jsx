@@ -34,11 +34,11 @@ const AdminHome = () => {
         </div>
         <div className="flex-1 p-4">
           <ul>
-            <li className="mb-4"><a href="#" className="flex items-center"><span className="mr-2">🏠</span> Dashboard</a></li>
-            <li className="mb-4"><a href="#" className="flex items-center"><span className="mr-2">👤</span> User</a></li>
-            <li className="mb-4"><a href="#" className="flex items-center"><span className="mr-2">👥</span> Group</a></li>
-            <li className="mb-4"><a href="#" className="flex items-center"><span className="mr-2">💬</span> Message</a></li>
-            <li><a href="#" className="flex items-center"><span className="mr-2">🔓</span> Logout</a></li>
+            <li className="mb-4"><p className="flex items-center"><span className="mr-2">🏠</span> Dashboard</p></li>
+            <li className="mb-4"><p className="flex items-center"><span className="mr-2">👤</span> User</p></li>
+            <li className="mb-4"><p className="flex items-center"><span className="mr-2">👥</span> Group</p></li>
+            <li className="mb-4"><p className="flex items-center"><span className="mr-2">💬</span> Message</p></li>
+            <li><p className="flex items-center"><span className="mr-2">🔓</span> Logout</p></li>
           </ul>
         </div>
       </div>

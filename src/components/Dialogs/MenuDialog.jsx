@@ -3,14 +3,23 @@ import React, { Fragment, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import ConfirmButton from "./ConfirmButton";
 import CreateGroupDialog from "./CreateGroupDialog";
+import axios from "axios";
+import { config, server } from "../../constants/config";
+import { useDispatch } from "react-redux";
+import { logout } from "../../redux/slicer/auth";
+import toast from "react-hot-toast";
 
 const MenuDialog = () => {
     const navigate = useNavigate();
     const [confirmDialog, setConfirmDialog] = useState(false);
     const [groupDialog, setGroupDialog] = useState(false);
 
+    const dispatch = useDispatch(state => state.auth)
+
     const LogoutHandler = () =>{
-        console.log('logout successful');
+        axios.get(`${server}/user/logout`,config).then(res => {dispatch(logout())
+          toast.success(res.data.message)
+        }).catch(err => toast.error(err?.response?.data?.message || 'Something went wrong!'))
     }
   return (<>
     <Menu as="div" className="relative inline-block text-left">

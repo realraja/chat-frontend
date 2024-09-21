@@ -1,10 +1,14 @@
-import React, { Suspense, lazy } from "react";
+import React, { Suspense, lazy, useEffect } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import NotFound from "./Pages/NotFound";
 import MainLoader from "./components/loaders/MainLoader";
 import SoundRecorder from "./Pages/tests/SoundRecorder";
 import AdminHome from "./Pages/admin/AdminHome";
+import axios from "axios";
+import { config, server } from "./constants/config";
+import { useDispatch, useSelector } from "react-redux";
+import { login, logout } from "./redux/slicer/auth";
 
 const Login = lazy(() => import("./Pages/Login"));
 const Register = lazy(() => import("./Pages/Reginster"));
@@ -12,9 +16,17 @@ const Home = lazy(() => import("./Pages/Home"));
 const Profile = lazy(() => import("./Pages/Profile"));
 
 
-let user = true;
 
 const App = () => {
+
+  const {user} = useSelector(state => state.auth);
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+  axios.get(`${server}/user/profile`,config).then(res=> dispatch(login(res.data.success))).catch(err => {
+    console.log(err?.response?.data?.message || 'Something went wrong!');
+    dispatch(logout())});
+  }, [dispatch])
   return (
     <BrowserRouter>
     <Suspense fallback={<MainLoader />}>

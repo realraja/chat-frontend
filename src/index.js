@@ -4,14 +4,20 @@ import App from './App';
 import './index.css';
 import reportWebVitals from './reportWebVitals';
 import { HelmetProvider } from 'react-helmet-async';
+import { Provider } from 'react-redux';
+import store from './redux/store';
+import { Toaster } from 'react-hot-toast';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <>
   <HelmetProvider>
+    <Provider store={store}>
   <div onContextMenu={(e)=> e.preventDefault()}>
     <App />
     </div>
+    </Provider>
+    <Toaster position='bottom-center' />
     </HelmetProvider>
   </>
 );
