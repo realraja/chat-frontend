@@ -1,114 +1,131 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ModalImage from "react-modal-image";
 import MenuDialog from "../Dialogs/MenuDialog";
+import { useLazySearchUserQuery } from "../../redux/api/api";
+import moment from "moment";
 
-const conversations = [
-  {
-    name: "Telegram",
-    lastMessage: "Login code: ****. Do not give this code to anyone.",
-    time: "01:19 PM",
-    imageUrl:
-      "https://img.freepik.com/premium-photo/cute-handsome-anime-boy_675932-411.jpg",
-  },
-  {
-    name: "Milkha 97834 51057",
-    lastMessage: "Milkha 97834 51057 joined Telegram",
-    time: "Fri",
-    imageUrl:
-      "https://img.freepik.com/premium-photo/cute-handsome-anime-boy_675932-411.jpg",
-  },
-  {
-    name: "Trilok",
-    lastMessage: "Trilok joined Telegram",
-    time: "Fri",
-    imageUrl:
-      "https://img.freepik.com/premium-photo/cute-handsome-anime-boy_675932-411.jpg",
-  },
-  {
-    name: "Trilok",
-    lastMessage: "Trilok joined Telegram",
-    time: "Fri",
-    imageUrl:
-      "https://img.freepik.com/premium-photo/cute-handsome-anime-boy_675932-411.jpg",
-  },
-  {
-    name: "Trilok",
-    lastMessage: "Trilok joined Telegram",
-    time: "Fri",
-    imageUrl:
-      "https://img.freepik.com/premium-photo/cute-handsome-anime-boy_675932-411.jpg",
-  },
-  {
-    name: "Trilok",
-    lastMessage: "Trilok joined Telegram",
-    time: "Fri",
-    imageUrl:
-      "https://img.freepik.com/premium-photo/cute-handsome-anime-boy_675932-411.jpg",
-  },
-  {
-    name: "Trilok",
-    lastMessage: "Trilok joined Telegram",
-    time: "Fri",
-    imageUrl:
-      "https://img.freepik.com/premium-photo/cute-handsome-anime-boy_675932-411.jpg",
-  },
-  {
-    name: "Trilok",
-    lastMessage: "Trilok joined Telegram",
-    time: "Fri",
-    imageUrl:
-      "https://img.freepik.com/premium-photo/cute-handsome-anime-boy_675932-411.jpg",
-  },
-  {
-    name: "Trilok",
-    lastMessage: "Trilok joined Telegram",
-    time: "Fri",
-    imageUrl:
-      "https://img.freepik.com/premium-photo/cute-handsome-anime-boy_675932-411.jpg",
-  },
-  {
-    name: "Trilok",
-    lastMessage: "Trilok joined Telegram",
-    time: "Fri",
-    imageUrl:
-      "https://img.freepik.com/premium-photo/cute-handsome-anime-boy_675932-411.jpg",
-  },
-  {
-    name: "Saved Messages",
-    lastMessage: "RAKESH KUMAR4095833.pdf",
-    time: "Fri",
-    imageUrl:
-      "https://img.freepik.com/premium-photo/cute-handsome-anime-boy_675932-411.jpg",
-  },
-  {
-    name: "Aakash",
-    lastMessage: "Photo",
-    time: "Wed",
-    imageUrl:
-      "https://img.freepik.com/premium-photo/cute-handsome-anime-boy_675932-411.jpg",
-  },
-  {
-    name: "Gurbhej",
-    lastMessage: "O ta nai pta",
-    time: "Wed",
-    imageUrl:
-      "https://img.freepik.com/premium-photo/cute-handsome-anime-boy_675932-411.jpg",
-  },
-  {
-    name: "Papa Ji",
-    lastMessage: "1000062193.jpg",
-    time: "Tue",
-    imageUrl:
-      "https://img.freepik.com/premium-photo/cute-handsome-anime-boy_675932-411.jpg",
-  },
-  // Add more conversations as needed
-];
+// const conversations = [
+//   {
+//     name: "Telegram",
+//     lastMessage: "Login code: ****. Do not give this code to anyone.",
+//     time: "01:19 PM",
+//     imageUrl:
+//       "https://img.freepik.com/premium-photo/cute-handsome-anime-boy_675932-411.jpg",
+//   },
+//   {
+//     name: "Milkha 97834 51057",
+//     lastMessage: "Milkha 97834 51057 joined Telegram",
+//     time: "Fri",
+//     imageUrl:
+//       "https://img.freepik.com/premium-photo/cute-handsome-anime-boy_675932-411.jpg",
+//   },
+//   {
+//     name: "Trilok",
+//     lastMessage: "Trilok joined Telegram",
+//     time: "Fri",
+//     imageUrl:
+//       "https://img.freepik.com/premium-photo/cute-handsome-anime-boy_675932-411.jpg",
+//   },
+//   {
+//     name: "Trilok",
+//     lastMessage: "Trilok joined Telegram",
+//     time: "Fri",
+//     imageUrl:
+//       "https://img.freepik.com/premium-photo/cute-handsome-anime-boy_675932-411.jpg",
+//   },
+//   {
+//     name: "Trilok",
+//     lastMessage: "Trilok joined Telegram",
+//     time: "Fri",
+//     imageUrl:
+//       "https://img.freepik.com/premium-photo/cute-handsome-anime-boy_675932-411.jpg",
+//   },
+//   {
+//     name: "Trilok",
+//     lastMessage: "Trilok joined Telegram",
+//     time: "Fri",
+//     imageUrl:
+//       "https://img.freepik.com/premium-photo/cute-handsome-anime-boy_675932-411.jpg",
+//   },
+//   {
+//     name: "Trilok",
+//     lastMessage: "Trilok joined Telegram",
+//     time: "Fri",
+//     imageUrl:
+//       "https://img.freepik.com/premium-photo/cute-handsome-anime-boy_675932-411.jpg",
+//   },
+//   {
+//     name: "Trilok",
+//     lastMessage: "Trilok joined Telegram",
+//     time: "Fri",
+//     imageUrl:
+//       "https://img.freepik.com/premium-photo/cute-handsome-anime-boy_675932-411.jpg",
+//   },
+//   {
+//     name: "Trilok",
+//     lastMessage: "Trilok joined Telegram",
+//     time: "Fri",
+//     imageUrl:
+//       "https://img.freepik.com/premium-photo/cute-handsome-anime-boy_675932-411.jpg",
+//   },
+//   {
+//     name: "Trilok",
+//     lastMessage: "Trilok joined Telegram",
+//     time: "Fri",
+//     imageUrl:
+//       "https://img.freepik.com/premium-photo/cute-handsome-anime-boy_675932-411.jpg",
+//   },
+//   {
+//     name: "Saved Messages",
+//     lastMessage: "RAKESH KUMAR4095833.pdf",
+//     time: "Fri",
+//     imageUrl:
+//       "https://img.freepik.com/premium-photo/cute-handsome-anime-boy_675932-411.jpg",
+//   },
+//   {
+//     name: "Aakash",
+//     lastMessage: "Photo",
+//     time: "Wed",
+//     imageUrl:
+//       "https://img.freepik.com/premium-photo/cute-handsome-anime-boy_675932-411.jpg",
+//   },
+//   {
+//     name: "Gurbhej",
+//     lastMessage: "O ta nai pta",
+//     time: "Wed",
+//     imageUrl:
+//       "https://img.freepik.com/premium-photo/cute-handsome-anime-boy_675932-411.jpg",
+//   },
+//   {
+//     name: "Papa Ji",
+//     lastMessage: "1000062193.jpg",
+//     time: "Tue",
+//     imageUrl:
+//       "https://img.freepik.com/premium-photo/cute-handsome-anime-boy_675932-411.jpg",
+//   },
+//   // Add more conversations as needed
+// ];
 
-const Sidebar = ({ id }) => {
+const Sidebar = ({ id,chatList}) => {
   const [searchText, setSearchText] = useState("");
+  // const [chatList, setChatList] = useState(data);
+  const [searchList, setSearchList] = useState([]);
   // const [isSearch, setIsSearch] = useState(false);
   const navigate = useNavigate();
+
+  const [searchUser] = useLazySearchUserQuery();
+
+  useEffect(() => {    
+    if(searchText.length > 0){
+      const timeOutId = setTimeout(() => {
+        searchUser(searchText).then(({data}) => {
+          setSearchList([...data?.groups,...data?.users])
+        }).catch((e)=> console.log(e));
+      }, 500);
+      return () => clearTimeout(timeOutId)
+    }
+  }, [searchText,searchUser]);
 
   return (
     <div
@@ -135,28 +152,28 @@ const Sidebar = ({ id }) => {
         <div className="h-full overflow-auto scrollEditclass">
           {!searchText ? (
             <ul>
-              {conversations.map((conv, index) => (
+              {chatList.map((conv, index) => (
                 <li
                   key={index}
                   className="mb-4 cursor-pointer hover:bg-gray-700 p-2 rounded flex items-center"
                 >
                   <ModalImage
-                    small={conv.imageUrl}
-                    large={conv.imageUrl}
+                    small={conv?.imgUrl[0]}
+                    large={conv?.imgUrl[0]}
                     alt="Preview Image"
                     className="w-10 h-10 rounded-full mr-4 object-cover"
                   />
                   <div
-                    onClick={() => navigate("/chat/" + conv.name)}
+                    onClick={() => navigate("/chat/" + conv?.name)}
                     className="flex justify-between w-full"
                   >
                     <div>
-                      <h3 className="text-lg font-semibold">{conv.name}</h3>
-                      <p className="text-sm text-gray-400">
+                      <h3 className="text-lg font-semibold">{conv?.name.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ')}</h3>
+                      {/* <p className="text-sm text-gray-400">
                         {conv.lastMessage}
-                      </p>
+                      </p> */}
                     </div>
-                    <p className="text-xs text-gray-400">{conv.time}</p>
+                    <p className="text-xs text-gray-400">{moment(conv?.updatedAt).fromNow()}</p>
                   </div>
                 </li>
               ))}
@@ -165,31 +182,29 @@ const Sidebar = ({ id }) => {
             <h1>Write Atleast 3 Characters for search.</h1>
           ) : (
             <ul>
-              <li className="mb-4 cursor-pointer hover:bg-gray-700 p-2 rounded flex items-center">
+            {searchList.map((conv, index) => (
+              <li
+                key={index}
+                className="mb-4 cursor-pointer hover:bg-gray-700 p-2 rounded flex items-center"
+              >
                 <ModalImage
-                  small={conversations[0].imageUrl}
-                  large={conversations[0].imageUrl}
+                  small={conv.avatar}
+                  large={conv.avatar}
                   alt="Preview Image"
                   className="w-10 h-10 rounded-full mr-4 object-cover"
                 />
                 <div
-                  onClick={() => navigate("/chat/" + conversations[0].name)}
+                  onClick={() => navigate("/chat/" + conv.name)}
                   className="flex justify-between w-full"
                 >
                   <div>
-                    <h3 className="text-lg font-semibold">
-                      {conversations[0].name}
-                    </h3>
-                    <p className="text-sm text-gray-400">
-                      {conversations[0].lastMessage}
-                    </p>
+                    <h3 className="text-lg font-semibold">{conv.name.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ')}</h3>
                   </div>
-                  <p className="text-xs text-gray-400">
-                    {conversations[0].time}
-                  </p>
+                  <p className="text-xs text-gray-400">{moment(conv.updatedAt).fromNow()}</p>
                 </div>
               </li>
-            </ul>
+            ))}
+          </ul>
           )}
         </div>
       </div>

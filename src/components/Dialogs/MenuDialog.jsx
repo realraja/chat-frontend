@@ -21,6 +21,13 @@ const MenuDialog = () => {
           toast.success(res.data.message)
         }).catch(err => toast.error(err?.response?.data?.message || 'Something went wrong!'))
     }
+    const createGroup = (name,membersData) =>{
+      const members = membersData.map(item => item._id);
+      // console.log(members)
+        axios.post(`${server}/chat/new`,{name,members},config).then(res => {
+          toast.success(res.data.message)
+        }).catch(err => toast.error(err?.response?.data?.message || 'Something went wrong!'))
+    }
   return (<>
     <Menu as="div" className="relative inline-block text-left">
       <div>
@@ -219,7 +226,7 @@ const MenuDialog = () => {
       </Transition>
     </Menu>
     <ConfirmButton comfirmState={confirmDialog} setComfirmState={setConfirmDialog} runFunction={LogoutHandler} buttonText="LogOut" />
-   <CreateGroupDialog confirmState={groupDialog} setConfirmState={setGroupDialog} runFunction={LogoutHandler} />
+   <CreateGroupDialog confirmState={groupDialog} setConfirmState={setGroupDialog} runFunction={createGroup} />
     </>)
 }
 

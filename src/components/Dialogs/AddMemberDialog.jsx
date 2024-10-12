@@ -1,29 +1,27 @@
-import { Fragment, useRef, useState } from 'react';
+import { Fragment, useEffect, useRef, useState } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
+import { useLazySearchUserQuery } from '../../redux/api/api';
 
 export default function AddMemberDialog({ confirmState, setConfirmState, runFunction, buttonText = 'Done' }) {
   const cancelButtonRef = useRef(null);
   const [selectedPeople, setSelectedPeople] = useState([]);
+  const [people, setPeople] = useState([]);
 
-  const people = [
-    { id: 1, name: 'Abhishek Nahar Singh', avatar: 'https://res.cloudinary.com/dwc3gwskl/image/upload/v1717480397/native_todoApp_task/auiqwdoshb8vqvmro9bc.jpg' },
-    { id: 2, name: 'Wariko', avatar: 'https://via.placeholder.com/50' },
-    { id: 3, name: 'Ayan Hasnain', avatar: 'https://via.placeholder.com/50' },
-    { id: 4, name: 'test', avatar: 'https://via.placeholder.com/50' },
-    { id: 5, name: 'test2', avatar: 'https://via.placeholder.com/50' },
-    { id: 6, name: 'todo', avatar: 'https://res.cloudinary.com/dwc3gwskl/image/upload/v1717480397/native_todoApp_task/auiqwdoshb8vqvmro9bc.jpg' },
-    { id: 7, name: 'LeetCode-Cpp', avatar: 'https://via.placeholder.com/50' },
-    { id: 8, name: 'Rahul', avatar: 'https://via.placeholder.com/50' },
-    { id: 9, name: 'gaur', avatar: 'https://via.placeholder.com/50' },
-    { id: 10, name: 'Kartik', avatar: 'https://via.placeholder.com/50' },
-    { id: 11, name: 'alphamale', avatar: 'https://res.cloudinary.com/dwc3gwskl/image/upload/v1717480397/native_todoApp_task/auiqwdoshb8vqvmro9bc.jpg' },
-    // Add more people as needed
-  ];
 
+  const [searchUser] = useLazySearchUserQuery();
+
+  useEffect(() => {    
+    searchUser('').then(({data}) => {
+      setPeople([...data?.users])
+    }).catch((e)=> console.log(e));
+  }, [searchUser]);
+
+
+ 
   const handleCheckboxChange = (person) => {
     setSelectedPeople((prevSelectedPeople) => {
-      if (prevSelectedPeople.some(p => p.id === person.id)) {
-        return prevSelectedPeople.filter((p) => p.id !== person.id);
+      if (prevSelectedPeople.some(p => p._id === person._id)) {
+        return prevSelectedPeople.filter((p) => p._id !== person._id);
       } else {
         return [...prevSelectedPeople, person];
       }
@@ -75,7 +73,7 @@ export default function AddMemberDialog({ confirmState, setConfirmState, runFunc
                       </div>
                       <div className="mt-4 px-5 max-h-80 overflow-y-auto scrollEditclass">
                         {people.map((person) => (
-                          <div key={person.id} className="flex items-center justify-between mt-2">
+                          <div key={person._id} className="flex items-center justify-between mt-2">
                             <div className="flex items-center">
                               <img src={person.avatar} alt={person.name} className="w-10 h-10 rounded-full mr-2" />
                               <span>{person.name}</span>
@@ -83,7 +81,7 @@ export default function AddMemberDialog({ confirmState, setConfirmState, runFunc
                             <input
                               type="checkbox"
                               className="form-checkbox h-5 w-5 text-purple-500"
-                              checked={selectedPeople.some(p => p.id === person.id)}
+                              checked={selectedPeople.some(p => p._id === person._id)}
                               onChange={() => handleCheckboxChange(person)}
                             />
                           </div>
