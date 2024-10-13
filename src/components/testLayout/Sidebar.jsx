@@ -152,7 +152,7 @@ const Sidebar = ({ id,chatList}) => {
         <div className="h-full overflow-auto scrollEditclass">
           {!searchText ? (
             <ul>
-              {chatList.map((conv, index) => (
+              {chatList?.map((conv, index) => (
                 <li
                   key={index}
                   className="mb-4 cursor-pointer hover:bg-gray-700 p-2 rounded flex items-center"

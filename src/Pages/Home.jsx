@@ -17,7 +17,7 @@ const Home = () => {
   return (<>
   {/* <Navbar /> */}
   <div className="flex h-[calc(100dvh)]">
-      <Sidebar id={params.id} chatList={data.chat} />
+      <Sidebar id={params.id} chatList={data?.chat} />
       
       <ChatWindow id={params.id} setShowInfo={setUserInfoShow} showInfo={userInfoShow} />
 
