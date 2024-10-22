@@ -4,6 +4,9 @@ import ModalImage from "react-modal-image";
 import MenuDialog from "../Dialogs/MenuDialog";
 import { useLazySearchUserQuery } from "../../redux/api/api";
 import moment from "moment";
+import axios from "axios";
+import { config, server } from "../../constants/config";
+import toast from "react-hot-toast";
 
 // const conversations = [
 //   {
@@ -164,11 +167,11 @@ const Sidebar = ({ id,chatList}) => {
                     className="w-10 h-10 rounded-full mr-4 object-cover"
                   />
                   <div
-                    onClick={() => navigate("/chat/" + conv?.name)}
+                    onClick={() => navigate("/chat/" + conv?._id)}
                     className="flex justify-between w-full"
                   >
                     <div>
-                      <h3 className="text-lg font-semibold">{conv?.name.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ')}</h3>
+                      <h3 className="text-lg font-semibold">{conv?.name?.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ')}</h3>
                       {/* <p className="text-sm text-gray-400">
                         {conv.lastMessage}
                       </p> */}
@@ -183,26 +186,7 @@ const Sidebar = ({ id,chatList}) => {
           ) : (
             <ul>
             {searchList.map((conv, index) => (
-              <li
-                key={index}
-                className="mb-4 cursor-pointer hover:bg-gray-700 p-2 rounded flex items-center"
-              >
-                <ModalImage
-                  small={conv.avatar}
-                  large={conv.avatar}
-                  alt="Preview Image"
-                  className="w-10 h-10 rounded-full mr-4 object-cover"
-                />
-                <div
-                  onClick={() => navigate("/chat/" + conv.name)}
-                  className="flex justify-between w-full"
-                >
-                  <div>
-                    <h3 className="text-lg font-semibold">{conv.name.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ')}</h3>
-                  </div>
-                  <p className="text-xs text-gray-400">{moment(conv.updatedAt).fromNow()}</p>
-                </div>
-              </li>
+              <SearchListComponent avatar={conv.avatar} name={conv.name} key={index} navigate={navigate} _id={conv._id} />
             ))}
           </ul>
           )}
@@ -213,6 +197,37 @@ const Sidebar = ({ id,chatList}) => {
 };
 
 export default Sidebar;
+
+const SearchListComponent = ({avatar,name,navigate,_id}) =>{
+
+  const handleChat = async() =>{
+    const {data} = await axios.post(`${server}/chat/new/chat`,{member:_id},config);
+    navigate("/chat/" + data.chat._id);
+    toast.success(data.message);
+  }
+
+  return (
+    <li
+                className="mb-4 cursor-pointer hover:bg-gray-700 p-2 rounded flex items-center"
+              >
+                <ModalImage
+                  small={avatar}
+                  large={avatar}
+                  alt="Preview Image"
+                  className="w-10 h-10 rounded-full mr-4 object-cover"
+                />
+                <div
+                  className="flex justify-between w-full"
+                >
+                  <div>
+                    <h3 className="text-lg font-semibold">{name.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ')}</h3>
+                  </div>
+                  {/* <p className="text-xs text-gray-400">{moment(updatedAt).fromNow()}</p> */}
+                  <button onClick={handleChat} className="bg-green-400 rounded-lg px-4 py-1">Chat</button>
+                </div>
+              </li>
+  )
+}
 
 
 
