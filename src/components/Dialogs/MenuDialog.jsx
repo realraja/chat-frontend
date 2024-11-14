@@ -9,7 +9,7 @@ import { useDispatch } from "react-redux";
 import { logout } from "../../redux/slicer/auth";
 import toast from "react-hot-toast";
 
-const MenuDialog = () => {
+const MenuDialog = ({refetch}) => {
     const navigate = useNavigate();
     const [confirmDialog, setConfirmDialog] = useState(false);
     const [groupDialog, setGroupDialog] = useState(false);
@@ -25,7 +25,8 @@ const MenuDialog = () => {
       const members = membersData.map(item => item._id);
       // console.log(members)
         axios.post(`${server}/chat/new`,{name,members},config).then(res => {
-          toast.success(res.data.message)
+          toast.success(res.data.message);
+          refetch();
         }).catch(err => toast.error(err?.response?.data?.message || 'Something went wrong!'))
     }
   return (<>

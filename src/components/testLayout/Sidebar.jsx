@@ -2,12 +2,13 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ModalImage from "react-modal-image";
 import MenuDialog from "../Dialogs/MenuDialog";
-import { useLazySearchUserQuery } from "../../redux/api/api";
+import { useLazySearchUserQuery, useMyChatsQuery } from "../../redux/api/api";
 import moment from "moment";
 import axios from "axios";
 import { config, server } from "../../constants/config";
 import toast from "react-hot-toast";
 import { useSelector } from "react-redux";
+import { ClipLoader } from "react-spinners";
 
 // const conversations = [
 //   {
@@ -111,18 +112,21 @@ import { useSelector } from "react-redux";
 //   // Add more conversations as needed
 // ];
 
-const Sidebar = ({ id, chatList }) => {
+const Sidebar = ({ id }) => {
   // const [isSearch, setIsSearch] = useState(false);
   // const [chatList, setChatList] = useState(data);
   const [searchText, setSearchText] = useState("");
   const [searchList, setSearchList] = useState([]);
+  const [chatList, setChatList] = useState([]);
   const navigate = useNavigate();
 
-  const {user} = useSelector(state => state.auth)
+  const { user } = useSelector((state) => state.auth);
 
-  console.log(searchList)
+  // console.log(searchList)
 
   const [searchUser] = useLazySearchUserQuery();
+  const { isLoading, refetch, data } = useMyChatsQuery("");
+  // const {isLoading,isError,error,refetch,data} = useMyChatsQuery('');
 
   useEffect(() => {
     if (searchText.length > 0) {
@@ -135,7 +139,8 @@ const Sidebar = ({ id, chatList }) => {
       }, 500);
       return () => clearTimeout(timeOutId);
     }
-  }, [searchText, searchUser]);
+    setChatList(data?.chat);
+  }, [searchText, searchUser, data, refetch]);
 
   return (
     <div
@@ -143,70 +148,86 @@ const Sidebar = ({ id, chatList }) => {
         id ? "max-sm:hidden sm:hidden md:block" : ""
       }`}
     >
-      <div className="flex h-full flex-col">
-        <div className="h-fit flex justify-between items-center gap-5 py-3 px-2 border-b border-gray-700">
-          <MenuDialog />
-          <input
-            // onInput={() => setIsSearch(true)}
-            // onBlur={()=> searchText || setIsSearch(false)}
-            value={searchText}
-            onChange={(e) => {
-              setSearchText(e.target.value);
-            }}
-            type="search"
-            name="search"
-            placeholder="Search"
-            className="bg-gray-700 w-full h-10 px-4 rounded-full focus:outline-none text-white"
-          />
+      
+        <div className="flex h-full flex-col">
+          <div className="h-fit flex justify-between items-center gap-5 py-3 px-2 border-b border-gray-700">
+            <MenuDialog refetch={refetch} />
+            <input
+              // onInput={() => setIsSearch(true)}
+              // onBlur={()=> searchText || setIsSearch(false)}
+              value={searchText}
+              onChange={(e) => {
+                setSearchText(e.target.value);
+              }}
+              type="search"
+              name="search"
+              placeholder="Search"
+              className="bg-gray-700 w-full h-10 px-4 rounded-full focus:outline-none text-white"
+            />
+
+            {/* <button onClick={() => refetch()}>Refresh</button> */}
+          </div>
+          {isLoading ? (
+        <div className="flex items-center justify-center my-5">
+          {" "}
+          <ClipLoader color="#2a90cf" size={70} speedMultiplier={1.5} />
         </div>
-        <div className="h-full overflow-auto scrollEditclass">
-          {!searchText ? (
-            <ul>
-              {chatList?.map((conv, index) => (
-                <ChatListComponent
-                  key={index}
-                  avatar={conv?.imgUrl[0]}
-                  name={conv?.name}
-                  _id={conv?._id}
-                  updatedAt={conv?.updatedAt}
-                  navigate={navigate}
-                />
-              ))}
-            </ul>
-          ) : searchText.length < 3 ? (
-            <h1>Write Atleast 3 Characters for search.</h1>
-          ) : (
-            <ul>
-              {searchList.map((conv, index) => (
-                conv.groupChat?<SearchListGroupComponent
-                  avatar={conv.imgUrl}
-                  name={conv.name}
-                  key={index}
-                  navigate={navigate}
-                  _id={conv._id}
-                  isMember={conv?.members?.includes(user)}
-                />:<SearchListUserComponent
-                avatar={conv.avatar}
-                name={conv.name}
-                key={index}
-                navigate={navigate}
-                _id={conv._id}
-                username={conv.username}
-                isFriend={conv.isFriend}
-              />
-              ))}
-            </ul>
-          )}
+      ) : <div className="h-full overflow-auto scrollEditclass">
+            {!searchText ? (
+              <ul>
+                {chatList?.map((conv, index) => (
+                  <ChatListComponent
+                    key={index}
+                    avatar={conv?.imgUrl[0]}
+                    name={conv?.name}
+                    _id={conv?._id}
+                    updatedAt={conv?.updatedAt}
+                    navigate={navigate}
+                  />
+                ))}
+              </ul>
+            ) : searchText.length < 3 ? (
+              <h1>Write Atleast 3 Characters for search.</h1>
+            ) : (
+              <ul>
+                {searchList.map((conv, index) =>
+                  conv.groupChat ? (
+                    <SearchListGroupComponent
+                      avatar={conv.imgUrl}
+                      name={conv.name}
+                      key={index}
+                      navigate={navigate}
+                      _id={conv._id}
+                      isMember={conv?.members?.includes(user)}
+                      setSearchText={setSearchText}
+                      refetch={refetch}
+                    />
+                  ) : (
+                    <SearchListUserComponent
+                      avatar={conv.avatar}
+                      name={conv.name}
+                      key={index}
+                      navigate={navigate}
+                      _id={conv._id}
+                      username={conv.username}
+                      isFriend={conv.isFriend}
+                      setSearchText={setSearchText}
+                      refetch={refetch}
+                    />
+                  )
+                )}
+              </ul>
+            )}
+          </div>}
         </div>
-      </div>
+      
     </div>
   );
 };
 
 export default Sidebar;
 
-const ChatListComponent = ({ avatar, _id, name, updatedAt , navigate}) => {
-
+const ChatListComponent = ({ avatar, _id, name, updatedAt, navigate }) => {
   return (
     <li className="mb-4 cursor-pointer hover:bg-gray-700 p-2 rounded flex items-center">
       <ModalImage
@@ -239,11 +260,19 @@ const ChatListComponent = ({ avatar, _id, name, updatedAt , navigate}) => {
   );
 };
 
-const SearchListGroupComponent = ({ avatar, name, navigate, _id,isMember }) => {
-
-
+const SearchListGroupComponent = ({
+  avatar,
+  name,
+  navigate,
+  _id,
+  isMember,
+  setSearchText,
+  refetch,
+}) => {
   const handleChat = async () => {
     toast.success("this function is not working!");
+    setSearchText("");
+    refetch();
   };
 
   return (
@@ -267,24 +296,39 @@ const SearchListGroupComponent = ({ avatar, name, navigate, _id,isMember }) => {
           </h3>
         </div>
         {/* <p className="text-xs text-gray-400">{moment(updatedAt).fromNow()}</p> */}
-        {!isMember?<button
-          onClick={handleChat}
-          className="bg-green-500 rounded-lg px-4 py-1"
-        >
-          Request
-        </button>:<button
-          onClick={()=> navigate("/chat/" + _id)}
-          className="bg-purple-600 rounded-lg px-4 py-1"
-        >
-          Message
-        </button>}
+        {!isMember ? (
+          <button
+            onClick={handleChat}
+            className="bg-green-500 rounded-lg px-4 py-1"
+          >
+            Request
+          </button>
+        ) : (
+          <button
+            onClick={() => {
+              navigate("/chat/" + _id);
+              setSearchText("");
+              refetch();
+            }}
+            className="bg-purple-600 rounded-lg px-4 py-1"
+          >
+            Message
+          </button>
+        )}
       </div>
     </li>
   );
 };
-const SearchListUserComponent = ({ avatar, name, navigate, _id,isFriend ,username}) => {
-
-
+const SearchListUserComponent = ({
+  avatar,
+  name,
+  navigate,
+  _id,
+  isFriend,
+  username,
+  setSearchText,
+  refetch,
+}) => {
   const handleChat = async () => {
     const { data } = await axios.post(
       `${server}/chat/new/chat`,
@@ -293,6 +337,8 @@ const SearchListUserComponent = ({ avatar, name, navigate, _id,isFriend ,usernam
     );
     navigate("/chat/" + data.chat._id);
     toast.success(data.message);
+    setSearchText("");
+    refetch();
   };
 
   return (
@@ -314,22 +360,28 @@ const SearchListUserComponent = ({ avatar, name, navigate, _id,isFriend ,usernam
               )
               .join(" ")}
           </h3>
-          <p className="text-sm text-gray-400">
-                        @{username}
-                      </p>
+          <p className="text-sm text-gray-400">@{username}</p>
         </div>
         {/* <p className="text-xs text-gray-400">{moment(updatedAt).fromNow()}</p> */}
-        {!isFriend?<button
-          onClick={handleChat}
-          className="bg-green-500 rounded-lg px-4 py-1"
-        >
-          Chat
-        </button>:<button
-          onClick={()=> navigate("/chat/" + _id)}
-          className="bg-purple-600 rounded-lg px-4 py-1"
-        >
-          Message
-        </button>}
+        {!isFriend ? (
+          <button
+            onClick={handleChat}
+            className="bg-green-500 rounded-lg px-4 py-1"
+          >
+            Chat
+          </button>
+        ) : (
+          <button
+            onClick={() => {
+              navigate("/chat/" + _id);
+              setSearchText("");
+              refetch();
+            }}
+            className="bg-purple-600 rounded-lg px-4 py-1"
+          >
+            Message
+          </button>
+        )}
       </div>
     </li>
   );
