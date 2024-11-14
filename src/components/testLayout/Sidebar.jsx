@@ -7,6 +7,7 @@ import moment from "moment";
 import axios from "axios";
 import { config, server } from "../../constants/config";
 import toast from "react-hot-toast";
+import { useSelector } from "react-redux";
 
 // const conversations = [
 //   {
@@ -110,25 +111,31 @@ import toast from "react-hot-toast";
 //   // Add more conversations as needed
 // ];
 
-const Sidebar = ({ id,chatList}) => {
-  const [searchText, setSearchText] = useState("");
-  // const [chatList, setChatList] = useState(data);
-  const [searchList, setSearchList] = useState([]);
+const Sidebar = ({ id, chatList }) => {
   // const [isSearch, setIsSearch] = useState(false);
+  // const [chatList, setChatList] = useState(data);
+  const [searchText, setSearchText] = useState("");
+  const [searchList, setSearchList] = useState([]);
   const navigate = useNavigate();
+
+  const {user} = useSelector(state => state.auth)
+
+  console.log(searchList)
 
   const [searchUser] = useLazySearchUserQuery();
 
-  useEffect(() => {    
-    if(searchText.length > 0){
+  useEffect(() => {
+    if (searchText.length > 0) {
       const timeOutId = setTimeout(() => {
-        searchUser(searchText).then(({data}) => {
-          setSearchList([...data?.groups,...data?.users])
-        }).catch((e)=> console.log(e));
+        searchUser(searchText)
+          .then(({ data }) => {
+            setSearchList([...data?.groups, ...data?.users]);
+          })
+          .catch((e) => console.log(e));
       }, 500);
-      return () => clearTimeout(timeOutId)
+      return () => clearTimeout(timeOutId);
     }
-  }, [searchText,searchUser]);
+  }, [searchText, searchUser]);
 
   return (
     <div
@@ -156,39 +163,39 @@ const Sidebar = ({ id,chatList}) => {
           {!searchText ? (
             <ul>
               {chatList?.map((conv, index) => (
-                <li
+                <ChatListComponent
                   key={index}
-                  className="mb-4 cursor-pointer hover:bg-gray-700 p-2 rounded flex items-center"
-                >
-                  <ModalImage
-                    small={conv?.imgUrl[0]}
-                    large={conv?.imgUrl[0]}
-                    alt="Preview Image"
-                    className="w-10 h-10 rounded-full mr-4 object-cover"
-                  />
-                  <div
-                    onClick={() => navigate("/chat/" + conv?._id)}
-                    className="flex justify-between w-full"
-                  >
-                    <div>
-                      <h3 className="text-lg font-semibold">{conv?.name?.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ')}</h3>
-                      {/* <p className="text-sm text-gray-400">
-                        {conv.lastMessage}
-                      </p> */}
-                    </div>
-                    <p className="text-xs text-gray-400">{moment(conv?.updatedAt).fromNow()}</p>
-                  </div>
-                </li>
+                  avatar={conv?.imgUrl[0]}
+                  name={conv?.name}
+                  _id={conv?._id}
+                  updatedAt={conv?.updatedAt}
+                  navigate={navigate}
+                />
               ))}
             </ul>
           ) : searchText.length < 3 ? (
             <h1>Write Atleast 3 Characters for search.</h1>
           ) : (
             <ul>
-            {searchList.map((conv, index) => (
-              <SearchListComponent avatar={conv.avatar} name={conv.name} key={index} navigate={navigate} _id={conv._id} />
-            ))}
-          </ul>
+              {searchList.map((conv, index) => (
+                conv.groupChat?<SearchListGroupComponent
+                  avatar={conv.imgUrl}
+                  name={conv.name}
+                  key={index}
+                  navigate={navigate}
+                  _id={conv._id}
+                  isMember={conv?.members?.includes(user)}
+                />:<SearchListUserComponent
+                avatar={conv.avatar}
+                name={conv.name}
+                key={index}
+                navigate={navigate}
+                _id={conv._id}
+                username={conv.username}
+                isFriend={conv.isFriend}
+              />
+              ))}
+            </ul>
           )}
         </div>
       </div>
@@ -198,38 +205,135 @@ const Sidebar = ({ id,chatList}) => {
 
 export default Sidebar;
 
-const SearchListComponent = ({avatar,name,navigate,_id}) =>{
-
-  const handleChat = async() =>{
-    const {data} = await axios.post(`${server}/chat/new/chat`,{member:_id},config);
-    navigate("/chat/" + data.chat._id);
-    toast.success(data.message);
-  }
+const ChatListComponent = ({ avatar, _id, name, updatedAt , navigate}) => {
 
   return (
-    <li
-                className="mb-4 cursor-pointer hover:bg-gray-700 p-2 rounded flex items-center"
-              >
-                <ModalImage
-                  small={avatar}
-                  large={avatar}
-                  alt="Preview Image"
-                  className="w-10 h-10 rounded-full mr-4 object-cover"
-                />
-                <div
-                  className="flex justify-between w-full"
-                >
-                  <div>
-                    <h3 className="text-lg font-semibold">{name.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ')}</h3>
-                  </div>
-                  {/* <p className="text-xs text-gray-400">{moment(updatedAt).fromNow()}</p> */}
-                  <button onClick={handleChat} className="bg-green-400 rounded-lg px-4 py-1">Chat</button>
-                </div>
-              </li>
-  )
-}
+    <li className="mb-4 cursor-pointer hover:bg-gray-700 p-2 rounded flex items-center">
+      <ModalImage
+        small={avatar}
+        large={avatar}
+        alt="Preview Image"
+        className="w-10 h-10 rounded-full mr-4 object-cover"
+      />
+      <div
+        onClick={() => navigate("/chat/" + _id)}
+        className="flex justify-between w-full"
+      >
+        <div>
+          <h3 className="text-lg font-semibold">
+            {name
+              ?.split(" ")
+              .map(
+                (word) =>
+                  word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+              )
+              .join(" ")}
+          </h3>
+          {/* <p className="text-sm text-gray-400">
+                        {conv.lastMessage}
+                      </p> */}
+        </div>
+        <p className="text-xs text-gray-400">{moment(updatedAt).fromNow()}</p>
+      </div>
+    </li>
+  );
+};
+
+const SearchListGroupComponent = ({ avatar, name, navigate, _id,isMember }) => {
 
 
+  const handleChat = async () => {
+    toast.success("this function is not working!");
+  };
+
+  return (
+    <li className="mb-4 cursor-pointer hover:bg-gray-700 p-2 rounded flex items-center">
+      <ModalImage
+        small={avatar}
+        large={avatar}
+        alt="Preview Image"
+        className="w-10 h-10 rounded-full mr-4 object-cover"
+      />
+      <div className="flex justify-between w-full">
+        <div>
+          <h3 className="text-lg font-semibold">
+            {name
+              .split(" ")
+              .map(
+                (word) =>
+                  word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+              )
+              .join(" ")}
+          </h3>
+        </div>
+        {/* <p className="text-xs text-gray-400">{moment(updatedAt).fromNow()}</p> */}
+        {!isMember?<button
+          onClick={handleChat}
+          className="bg-green-500 rounded-lg px-4 py-1"
+        >
+          Request
+        </button>:<button
+          onClick={()=> navigate("/chat/" + _id)}
+          className="bg-purple-600 rounded-lg px-4 py-1"
+        >
+          Message
+        </button>}
+      </div>
+    </li>
+  );
+};
+const SearchListUserComponent = ({ avatar, name, navigate, _id,isFriend ,username}) => {
+
+
+  const handleChat = async () => {
+    const { data } = await axios.post(
+      `${server}/chat/new/chat`,
+      { member: _id },
+      config
+    );
+    navigate("/chat/" + data.chat._id);
+    toast.success(data.message);
+  };
+
+  return (
+    <li className="mb-4 cursor-pointer hover:bg-gray-700 p-2 rounded flex items-center">
+      <ModalImage
+        small={avatar}
+        large={avatar}
+        alt="Preview Image"
+        className="w-10 h-10 rounded-full mr-4 object-cover"
+      />
+      <div className="flex justify-between w-full">
+        <div>
+          <h3 className="text-lg font-semibold">
+            {name
+              ?.split(" ")
+              .map(
+                (word) =>
+                  word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+              )
+              .join(" ")}
+          </h3>
+          <p className="text-sm text-gray-400">
+                        @{username}
+                      </p>
+        </div>
+        {/* <p className="text-xs text-gray-400">{moment(updatedAt).fromNow()}</p> */}
+        {!isFriend?<button
+          onClick={handleChat}
+          className="bg-green-500 rounded-lg px-4 py-1"
+        >
+          Chat
+        </button>:<button
+          onClick={()=> navigate("/chat/" + _id)}
+          className="bg-purple-600 rounded-lg px-4 py-1"
+        >
+          Message
+        </button>}
+      </div>
+    </li>
+  );
+};
 
 /*
 

@@ -29,10 +29,10 @@ const Login = () => {
     try {
       const {data} = await axios.post(`${server}/user/login`,{username,password},config)
 
-      dispatch(login(true));
+      // console.log(data);
+      dispatch(login(data.user._id));
 
       toast.success(data.message);
-      // console.log(data.message);
 
     } catch (error) {
       // console.log(error,error?.response?.data?.message || 'Something went wrong!');
