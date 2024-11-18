@@ -8,11 +8,13 @@ import { config, server } from "../../constants/config";
 import { useDispatch } from "react-redux";
 import { logout } from "../../redux/slicer/auth";
 import toast from "react-hot-toast";
+import NotificationDialog from "./Notification";
 
 const MenuDialog = ({refetch}) => {
     const navigate = useNavigate();
     const [confirmDialog, setConfirmDialog] = useState(false);
     const [groupDialog, setGroupDialog] = useState(false);
+    const [notificationDialog, setNotificationDialog] = useState(false);
 
     const dispatch = useDispatch(state => state.auth)
 
@@ -114,7 +116,7 @@ const MenuDialog = ({refetch}) => {
             <Menu.Item>
               {({ active }) => (
                 <div
-                  onClick={() => navigate("/profile")}
+                  onClick={() => setNotificationDialog(true)}
                   className={`cursor-pointer p-2 rounded flex items-center ${
                     active ? "bg-gray-700" : ""
                   }`}
@@ -228,7 +230,7 @@ const MenuDialog = ({refetch}) => {
     </Menu>
     <ConfirmButton comfirmState={confirmDialog} setComfirmState={setConfirmDialog} runFunction={LogoutHandler} buttonText="LogOut" />
    <CreateGroupDialog confirmState={groupDialog} setConfirmState={setGroupDialog} runFunction={createGroup} />
-    </>)
+    <NotificationDialog confirmState={notificationDialog} setConfirmState={setNotificationDialog} /></>)
 }
 
 export default MenuDialog

@@ -2,13 +2,14 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ModalImage from "react-modal-image";
 import MenuDialog from "../Dialogs/MenuDialog";
-import { useLazySearchUserQuery, useMyChatsQuery } from "../../redux/api/api";
+import { useLazySearchUserQuery, useMyChatsQuery, useSendGroupJoinRequestMutation } from "../../redux/api/api";
 import moment from "moment";
 import axios from "axios";
 import { config, server } from "../../constants/config";
 import toast from "react-hot-toast";
 import { useSelector } from "react-redux";
-import { ClipLoader } from "react-spinners";
+import { BarLoader, ClipLoader } from "react-spinners";
+import { useAsyncMutation } from "../../hooks/hook";
 
 // const conversations = [
 //   {
@@ -118,6 +119,7 @@ const Sidebar = ({ id }) => {
   const [searchText, setSearchText] = useState("");
   const [searchList, setSearchList] = useState([]);
   const [chatList, setChatList] = useState([]);
+  const [searchLoading, setSearchLoading] = useState(false);
   const navigate = useNavigate();
 
   const { user } = useSelector((state) => state.auth);
@@ -127,15 +129,19 @@ const Sidebar = ({ id }) => {
   const [searchUser] = useLazySearchUserQuery();
   const { isLoading, refetch, data } = useMyChatsQuery("");
   // const {isLoading,isError,error,refetch,data} = useMyChatsQuery('');
+  // console.log(data);
 
   useEffect(() => {
     if (searchText.length > 0) {
+      setSearchLoading(true);
       const timeOutId = setTimeout(() => {
         searchUser(searchText)
           .then(({ data }) => {
             setSearchList([...data?.groups, ...data?.users]);
           })
-          .catch((e) => console.log(e));
+          .catch((e) => console.log(e)).finally(()=>{
+      setSearchLoading(false);
+          })
       }, 500);
       return () => clearTimeout(timeOutId);
     }
@@ -183,9 +189,15 @@ const Sidebar = ({ id }) => {
                     _id={conv?._id}
                     updatedAt={conv?.updatedAt}
                     navigate={navigate}
+                    user={user}
                   />
                 ))}
               </ul>
+            ) :searchLoading ? (
+              <div className="flex items-center justify-center my-5">
+                {" "}
+                <BarLoader  color="#2a90cf" size={70} speedMultiplier={1.5} />
+              </div>
             ) : searchText.length < 3 ? (
               <h1>Write Atleast 3 Characters for search.</h1>
             ) : (
@@ -227,7 +239,7 @@ const Sidebar = ({ id }) => {
 
 export default Sidebar;
 
-const ChatListComponent = ({ avatar, _id, name, updatedAt, navigate }) => {
+const ChatListComponent = ({ avatar, _id, name, updatedAt, navigate,user }) => {
   return (
     <li className="mb-4 cursor-pointer hover:bg-gray-700 p-2 rounded flex items-center">
       <ModalImage
@@ -249,6 +261,7 @@ const ChatListComponent = ({ avatar, _id, name, updatedAt, navigate }) => {
                   word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
               )
               .join(" ")}
+              {_id === user ? '(You)':null}
           </h3>
           {/* <p className="text-sm text-gray-400">
                         {conv.lastMessage}
@@ -269,9 +282,11 @@ const SearchListGroupComponent = ({
   setSearchText,
   refetch,
 }) => {
+  const [SendJoinRequest,isLoadingRequest,dataRequest] = useAsyncMutation(useSendGroupJoinRequestMutation);
   const handleChat = async () => {
-    toast.success("this function is not working!");
-    setSearchText("");
+    await SendJoinRequest("sending Friend request",{chatId: _id});
+    // toast.success("this function is not working!");
+    // setSearchText("");
     refetch();
   };
 

@@ -4,6 +4,7 @@ import Sidebar from '../components/testLayout/Sidebar'
 import ChatWindow from '../components/testLayout/ChatWindow'
 import { useParams } from 'react-router-dom'
 import UserInfo from '../components/testLayout/UserInfo'
+import Title from '../components/shared/Title'
 
 const Home = () => {
   const [userInfoShow, setUserInfoShow] = useState(false);
@@ -14,6 +15,7 @@ const Home = () => {
   // console.log(params.id)
   return (<>
   {/* <Navbar /> */}
+  <Title  />
   <div className="flex h-[calc(100dvh)]">
       <Sidebar id={params.id} />
       
