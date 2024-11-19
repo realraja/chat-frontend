@@ -9,6 +9,7 @@ import axios from "axios";
 import { config, server } from "./constants/config";
 import { useDispatch, useSelector } from "react-redux";
 import { login, logout } from "./redux/slicer/auth";
+import { SocketProvider } from "./socket/socket";
 
 const Login = lazy(() => import("./Pages/Login"));
 const Register = lazy(() => import("./Pages/Reginster"));
@@ -31,7 +32,7 @@ const App = () => {
     <BrowserRouter>
     <Suspense fallback={<MainLoader />}>
       <Routes>
-        <Route element={<ProtectedRoute user={user} />}>
+        <Route element={<SocketProvider><ProtectedRoute user={user} /></SocketProvider>}>
           <Route path="/" element={<Home />} />
           <Route path="/chat/:id" element={<Home />} />
           <Route path="/profile" element={<Profile />} />

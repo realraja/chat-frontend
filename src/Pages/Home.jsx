@@ -5,23 +5,30 @@ import ChatWindow from '../components/testLayout/ChatWindow'
 import { useParams } from 'react-router-dom'
 import UserInfo from '../components/testLayout/UserInfo'
 import Title from '../components/shared/Title'
+import { useGetChatDetailsQuery } from '../redux/api/api'
+// import { GetSoket } from '../socket/socket'
 
 const Home = () => {
   const [userInfoShow, setUserInfoShow] = useState(false);
-  const params = useParams();
+  const {id} = useParams();
 
+  // console.log(!id)
+  //  const socket = GetSoket();
 
-  // console.log('deta===>',data);
-  // console.log(params.id)
+   const ChatDetails = useGetChatDetailsQuery({chatId: id,populate:true},{skip:!id});
+  //  console.log(ChatDetails.data);
+
+  //  console.log(socket.id);
+
   return (<>
   {/* <Navbar /> */}
   <Title  />
   <div className="flex h-[calc(100dvh)]">
-      <Sidebar id={params.id} />
+      <Sidebar id={id} />
       
-      <ChatWindow id={params.id} setShowInfo={setUserInfoShow} showInfo={userInfoShow} />
+      <ChatWindow chater={ChatDetails?.data?.chat} setShowInfo={setUserInfoShow} showInfo={userInfoShow} />
 
-      <UserInfo id={params.id} setShowInfo={setUserInfoShow} showInfo={userInfoShow} />
+      <UserInfo id={id} chatData={ChatDetails?.data?.chat} setShowInfo={setUserInfoShow} showInfo={userInfoShow} />
     </div>
     </>
   )

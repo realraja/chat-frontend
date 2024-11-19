@@ -139,8 +139,8 @@ const Sidebar = ({ id }) => {
           .then(({ data }) => {
             setSearchList([...data?.groups, ...data?.users]);
           })
-          .catch((e) => console.log(e)).finally(()=>{
-      setSearchLoading(false);
+          .catch((e) => console.log(e)).finally(() => {
+            setSearchLoading(false);
           })
       }, 500);
       return () => clearTimeout(timeOutId);
@@ -150,98 +150,97 @@ const Sidebar = ({ id }) => {
 
   return (
     <div
-      className={`max-sm:w-full sm:w-full md:w-1/4 bg-gray-800 text-white h-[calc(100dvh)] ${
-        id ? "max-sm:hidden sm:hidden md:block" : ""
-      }`}
+      className={`max-sm:w-full sm:w-full md:w-1/4 bg-gray-800 text-white h-[calc(100dvh)] ${id ? "max-sm:hidden sm:hidden md:block" : ""
+        }`}
     >
-      
-        <div className="flex h-full flex-col">
-          <div className="h-fit flex justify-between items-center gap-5 py-3 px-2 border-b border-gray-700">
-            <MenuDialog refetch={refetch} />
-            <input
-              // onInput={() => setIsSearch(true)}
-              // onBlur={()=> searchText || setIsSearch(false)}
-              value={searchText}
-              onChange={(e) => {
-                setSearchText(e.target.value);
-              }}
-              type="search"
-              name="search"
-              placeholder="Search"
-              className="bg-gray-700 w-full h-10 px-4 rounded-full focus:outline-none text-white"
-            />
 
-            {/* <button onClick={() => refetch()}>Refresh</button> */}
+      <div className="flex h-full flex-col">
+        <div className="h-fit flex justify-between items-center gap-5 py-3 px-2 border-b border-gray-700">
+          <MenuDialog refetch={refetch} />
+          <input
+            // onInput={() => setIsSearch(true)}
+            // onBlur={()=> searchText || setIsSearch(false)}
+            value={searchText}
+            onChange={(e) => {
+              setSearchText(e.target.value);
+            }}
+            type="search"
+            name="search"
+            placeholder="Search"
+            className="bg-gray-700 w-full h-10 px-4 rounded-full focus:outline-none text-white"
+          />
+
+          {/* <button onClick={() => refetch()}>Refresh</button> */}
+        </div>
+        {isLoading ? (
+          <div className="flex items-center justify-center my-5">
+            {" "}
+            <ClipLoader color="#2a90cf" size={70} speedMultiplier={1.5} />
           </div>
-          {isLoading ? (
-        <div className="flex items-center justify-center my-5">
-          {" "}
-          <ClipLoader color="#2a90cf" size={70} speedMultiplier={1.5} />
-        </div>
-      ) : <div className="h-full overflow-auto scrollEditclass">
-            {!searchText ? (
-              <ul>
-                {chatList?.map((conv, index) => (
-                  <ChatListComponent
+        ) : <div className="h-full overflow-auto scrollEditclass">
+          {!searchText ? (
+            <ul>
+              {chatList?.map((conv, index) => (
+                <ChatListComponent
+                  key={index}
+                  avatar={conv?.imgUrl[0]}
+                  name={conv?.name}
+                  _id={conv?._id}
+                  updatedAt={conv?.updatedAt}
+                  navigate={navigate}
+                  user={user}
+                />
+              ))}
+            </ul>
+          ) : searchLoading ? (
+            <div className="flex items-center justify-center my-5">
+              {" "}
+              <BarLoader color="#2a90cf" size={70} speedMultiplier={1.5} />
+            </div>
+          ) : searchText.length < 3 ? (
+            <h1>Write Atleast 3 Characters for search.</h1>
+          ) : (
+            <ul>
+              {searchList.map((conv, index) =>
+                conv.groupChat ? (
+                  <SearchListGroupComponent
+                    avatar={conv.imgUrl}
+                    name={conv.name}
                     key={index}
-                    avatar={conv?.imgUrl[0]}
-                    name={conv?.name}
-                    _id={conv?._id}
-                    updatedAt={conv?.updatedAt}
                     navigate={navigate}
-                    user={user}
+                    _id={conv._id}
+                    isMember={conv?.members?.includes(user)}
+                    setSearchText={setSearchText}
+                    refetch={refetch}
                   />
-                ))}
-              </ul>
-            ) :searchLoading ? (
-              <div className="flex items-center justify-center my-5">
-                {" "}
-                <BarLoader  color="#2a90cf" size={70} speedMultiplier={1.5} />
-              </div>
-            ) : searchText.length < 3 ? (
-              <h1>Write Atleast 3 Characters for search.</h1>
-            ) : (
-              <ul>
-                {searchList.map((conv, index) =>
-                  conv.groupChat ? (
-                    <SearchListGroupComponent
-                      avatar={conv.imgUrl}
-                      name={conv.name}
-                      key={index}
-                      navigate={navigate}
-                      _id={conv._id}
-                      isMember={conv?.members?.includes(user)}
-                      setSearchText={setSearchText}
-                      refetch={refetch}
-                    />
-                  ) : (
-                    <SearchListUserComponent
-                      avatar={conv.avatar}
-                      name={conv.name}
-                      key={index}
-                      navigate={navigate}
-                      _id={conv._id}
-                      username={conv.username}
-                      isFriend={conv.isFriend}
-                      setSearchText={setSearchText}
-                      refetch={refetch}
-                    />
-                  )
-                )}
-              </ul>
-            )}
-          </div>}
-        </div>
-      
+                ) : (
+                  <SearchListUserComponent
+                    avatar={conv.avatar}
+                    name={conv.name}
+                    key={index}
+                    navigate={navigate}
+                    _id={conv._id}
+                    username={conv.username}
+                    isFriend={conv.isFriend}
+                    setSearchText={setSearchText}
+                    refetch={refetch}
+                  />
+                )
+              )}
+            </ul>
+          )}
+        </div>}
+      </div>
+
     </div>
   );
 };
 
 export default Sidebar;
 
-const ChatListComponent = ({ avatar, _id, name, updatedAt, navigate,user }) => {
+const ChatListComponent = ({ avatar, _id, name, updatedAt, navigate, user }) => {
   return (
-    <li className="mb-4 cursor-pointer hover:bg-gray-700 p-2 rounded flex items-center">
+    <li onClick={() => navigate("/chat/" + _id)} className="mb-4 cursor-pointer hover:bg-gray-700 p-2 rounded flex items-center">
       <ModalImage
         small={avatar}
         large={avatar}
@@ -249,7 +248,6 @@ const ChatListComponent = ({ avatar, _id, name, updatedAt, navigate,user }) => {
         className="w-10 h-10 rounded-full mr-4 object-cover"
       />
       <div
-        onClick={() => navigate("/chat/" + _id)}
         className="flex justify-between w-full"
       >
         <div>
@@ -261,7 +259,7 @@ const ChatListComponent = ({ avatar, _id, name, updatedAt, navigate,user }) => {
                   word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
               )
               .join(" ")}
-              {_id === user ? '(You)':null}
+            {_id === user ? '(You)' : null}
           </h3>
           {/* <p className="text-sm text-gray-400">
                         {conv.lastMessage}
@@ -282,9 +280,10 @@ const SearchListGroupComponent = ({
   setSearchText,
   refetch,
 }) => {
-  const [SendJoinRequest,isLoadingRequest,dataRequest] = useAsyncMutation(useSendGroupJoinRequestMutation);
+  const [SendJoinRequest, isLoadingRequest, dataRequest] = useAsyncMutation(useSendGroupJoinRequestMutation);
+  console.log(isLoadingRequest,dataRequest)
   const handleChat = async () => {
-    await SendJoinRequest("sending Friend request",{chatId: _id});
+    await SendJoinRequest("sending Friend request", { chatId: _id });
     // toast.success("this function is not working!");
     // setSearchText("");
     refetch();

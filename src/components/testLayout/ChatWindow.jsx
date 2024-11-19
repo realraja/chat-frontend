@@ -1,6 +1,11 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import ModalImage from "react-modal-image";
 import { Link } from "react-router-dom";
+import { GetSoket } from "../../socket/socket";
+import { NEW_MESSAGE } from "../../constants/events";
+import { useSelector } from "react-redux";
+import toast from "react-hot-toast";
+// import { useGetChatDetailsQuery } from "../../redux/api/api";
 
 const messages = [
   {
@@ -129,74 +134,29 @@ const messages = [
   },
   // Add more messages as needed
 ];
-const ChatWindow = ({ id, setShowInfo, showInfo }) => {
-  const [message, setMessage] = useState("");
-  const [recordingTime, setRecordingTime] = useState(0);
-  const [isRecording, setIsRecording] = useState(false);
-  const [mediaBlobUrl, setMediaBlobUrl] = useState(null);
-  const mediaRecorderRef = useRef(null);
-  const audioChunksRef = useRef([]);
-  const intervalIdRef = useRef(null);
+const ChatWindow = ({ chater, setShowInfo, showInfo }) => {
 
-  const audioSendHandle = ()=>{
-    console.log(mediaBlobUrl);
-  }
-
-  const startRecording = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      mediaRecorderRef.current = new MediaRecorder(stream);
-      audioChunksRef.current = [];
-
-      mediaRecorderRef.current.ondataavailable = (event) => {
-        if (event.data.size > 0) {
-          audioChunksRef.current.push(event.data);
-        }
-      };
-
-      mediaRecorderRef.current.onstop = () => {
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/wav' });
-        const audioUrl = URL.createObjectURL(audioBlob);
-        setMediaBlobUrl(audioUrl);
-      };
-
-      mediaRecorderRef.current.start();
-      setIsRecording(true);
-      setRecordingTime(0);
-      intervalIdRef.current = setInterval(() => {
-        setRecordingTime((prevTime) => prevTime + 100);
-      }, 100);
-    } catch (error) {
-      console.error('Error accessing audio stream:', error);
-    }
-  };
-
-  const stopRecording = () => {
-    if (mediaRecorderRef.current) {
-      mediaRecorderRef.current.stop();
-    }
-    clearInterval(intervalIdRef.current);
-    setIsRecording(false);
-  };
+  // const ChatDetails = useGetChatDetailsQuery({chatId: id,skip:!id});
+  // console.log(ChatDetails.data);
+  const socket = GetSoket();
 
 
-  const formatTime = (milliseconds) => {
-    const totalSeconds = Math.floor(milliseconds / 1000);
-    const minutes = Math.floor(totalSeconds / 60);
-    const seconds = totalSeconds % 60;
-    const ms = milliseconds % 1000;
-    return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}:${ms < 100 ? ms < 10 ? '00' : '0' : ''}${ms}`;
-  };
+  const {user} = useSelector(state => state.auth)
+
+  const id = chater?._id;
+  const members = chater?.members;
+  const chaterData = chater?.members.find((i)=> i?._id?.toString() !== user);
+  // console.log(chaterData)
+
+  
 
   return (
     <div
-      className={` ${
-        showInfo
+      className={` ${showInfo
           ? "max-sm:hidden sm:hidden md:flex md:w-1/2"
           : "max-sm:w-full sm:w-full md:w-3/4"
-      } h-[calc(100dvh)] flex flex-col bg-gray-900 text-white relative ${
-        id ? "" : "max-sm:hidden sm:hidden md:flex"
-      }`}
+        } h-[calc(100dvh)] flex flex-col bg-gray-900 text-white relative ${id ? "" : "max-sm:hidden sm:hidden md:flex"
+        }`}
     >
       <div className="p-3 border-b border-gray-700 flex items-center gap-5">
         <Link
@@ -224,11 +184,11 @@ const ChatWindow = ({ id, setShowInfo, showInfo }) => {
         >
           <div className="flex">
             <img
-              src="https://img.freepik.com/premium-photo/cute-handsome-anime-boy_675932-411.jpg"
+              src={chater?.groupChat?chater?.imgUrl[0]:chaterData?.avatar}
               alt={"conv.name"}
               className="w-10 h-10 rounded-full mr-4 object-cover"
             />
-            <h2 className="text-2xl font-bold">{id}</h2>
+            <h2 className="text-2xl font-bold">{chater?.groupChat?chater?.name:chaterData?.name}</h2>
           </div>
           <p className="text-sm text-gray-400">last seen 6/23/2024</p>
         </div>
@@ -249,9 +209,8 @@ const ChatWindow = ({ id, setShowInfo, showInfo }) => {
           >
             {msg.type === "text" ? (
               <p
-                className={`inline-block p-2 max-w-[90%] text-start rounded-lg ${
-                  msg.sender === "You" ? "bg-blue-600" : "bg-gray-700"
-                }`}
+                className={`inline-block p-2 max-w-[90%] text-start rounded-lg ${msg.sender === "You" ? "bg-blue-600" : "bg-gray-700"
+                  }`}
               >
                 {msg.content}
               </p>
@@ -270,14 +229,119 @@ const ChatWindow = ({ id, setShowInfo, showInfo }) => {
             )}
             <p className="text-xs text-gray-400">{msg.time}</p>
           </div>
-          
+
         ))}
-        {mediaBlobUrl && <audio src={mediaBlobUrl} controls className="inline-block p-2 max-w-[90%] text-start rounded-lg" />}
+        {/* {mediaBlobUrl && <audio src={mediaBlobUrl} controls className="inline-block p-2 max-w-[90%] text-start rounded-lg" />} */}
       </div>
-      <div
+      
+
+      <div>
+        <TextMessageComponent chatId={id} members={members} socket={socket} />
+      </div>
+    </div>
+  );
+};
+
+export default ChatWindow;
+
+
+
+const TextMessageComponent = ({chatId,members,socket}) =>{
+
+  const [message, setMessage] = useState("");
+  const [recordingTime, setRecordingTime] = useState(0);
+  const [isRecording, setIsRecording] = useState(false);
+  const [mediaBlobUrl, setMediaBlobUrl] = useState(null);
+
+  
+  const mediaRecorderRef = useRef(null);
+  const audioChunksRef = useRef([]);
+  const intervalIdRef = useRef(null);  
+  const streamRef = useRef(null);
+
+
+
+  const audioSendHandle = () => {
+    console.log(mediaBlobUrl);
+  }
+
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mediaRecorderRef.current = new MediaRecorder(stream);
+      audioChunksRef.current = [];
+      streamRef.current = stream; // Store the stream reference to stop it later
+  
+      mediaRecorderRef.current.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+  
+      mediaRecorderRef.current.onstop = () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: "audio/wav" });
+        const audioUrl = URL.createObjectURL(audioBlob);
+        setMediaBlobUrl(audioUrl);
+  
+        // Stop all audio tracks to release the microphone
+        streamRef.current.getTracks().forEach((track) => track.stop());
+      };
+  
+      mediaRecorderRef.current.start();
+      setIsRecording(true);
+      setRecordingTime(0);
+      intervalIdRef.current = setInterval(() => {
+        setRecordingTime((prevTime) => prevTime + 100);
+      }, 100);
+    } catch (error) {
+      console.error("Error accessing audio stream:", error);
+    }
+  };
+  
+  const stopRecording = () => {
+    if (mediaRecorderRef.current) {
+      mediaRecorderRef.current.stop();
+    }
+    clearInterval(intervalIdRef.current);
+    setIsRecording(false);
+  
+    // Stop the microphone (if not already stopped in `onstop`)
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => track.stop());
+    }
+  };
+  const formatTime = (milliseconds) => {
+    const totalSeconds = Math.floor(milliseconds / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    const ms = milliseconds % 1000;
+    return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}:${ms < 100 ? ms < 10 ? '00' : '0' : ''}${ms}`;
+  };
+
+
+
+
+  const submitMessage = (e) =>{
+    e.preventDefault();
+    if(!message.trim()) return;
+
+    socket.emit(NEW_MESSAGE,{chatId,members,message})
+    console.log(message);
+    setMessage('');
+  }
+
+  useEffect(()=>{
+    socket.on(NEW_MESSAGE,(data)=>{
+      console.log(data);
+      toast.success(data.message.content);
+    })
+  },[socket])
+
+
+ return <form onSubmit={submitMessage}
         className="flex max-sm:w-full sm:w-[80%] md:w-full lg:w-[80%] px-3 absolute  self-center bottom-5 gap-3"
       >
-        <div className="w-full relative">
+        <div  className="w-full relative">
           <input
             value={message}
             onChange={(e) => setMessage(e.target.value)}
@@ -311,101 +375,97 @@ const ChatWindow = ({ id, setShowInfo, showInfo }) => {
           </button>
         </div>
 
-       
-                        {/* {status === 'stopped' && setRecordingUrl(mediaBlobUrl)} */}
-              {!message || isRecording  ? (
-                !isRecording ? (
-                  <button
-                  onClick={startRecording}
-                  disabled={isRecording}
-                    className="p-2 px-4 bg-purple-600 rounded-full"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth={1.5}
-                      stroke="currentColor"
-                      className="size-6"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M12 18.75a6 6 0 0 0 6-6v-1.5m-6 7.5a6 6 0 0 1-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 0 1-3-3V4.5a3 3 0 1 1 6 0v8.25a3 3 0 0 1-3 3Z"
-                      />
-                    </svg>
-                  </button>
-                ) : (
-                  <>
-                    {" "}
-                    <button
-                      onClick={stopRecording}
-                      disabled={!isRecording}
-                      className={"p-2 px-4 bg-rose-600 rounded-full"}
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        strokeWidth={1.5}
-                        stroke="currentColor"
-                        className="size-6"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"
-                        />
-                      </svg>
-                    </button>{" "}
-                    <button
-                      type="submit"
-                      onClick={()=>{stopRecording(); audioSendHandle();}}
-disabled={!isRecording}
-                      className="p-2 px-4 bg-purple-600 rounded-full"
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        strokeWidth={1.5}
-                        stroke="currentColor"
-                        className="size-6 -rotate-45"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5"
-                        />
-                      </svg>
-                    </button>{" "}
-                  </>
-                )
-              ) : (
-                <button
-                  type="submit"
-                  className="p-2 px-4 bg-purple-600 rounded-full"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={1.5}
-                    stroke="currentColor"
-                    className="size-6 -rotate-45"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5"
-                    />
-                  </svg>
-                </button>
-              )}
-            
-      </div>
-    </div>
-  );
-};
 
-export default ChatWindow;
+        {/* {status === 'stopped' && setRecordingUrl(mediaBlobUrl)} */}
+        {!message || isRecording ? (
+          !isRecording ? (
+            <button
+              onClick={startRecording}
+              disabled={isRecording}
+              className="p-2 px-4 bg-purple-600 rounded-full"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+                stroke="currentColor"
+                className="size-6"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M12 18.75a6 6 0 0 0 6-6v-1.5m-6 7.5a6 6 0 0 1-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 0 1-3-3V4.5a3 3 0 1 1 6 0v8.25a3 3 0 0 1-3 3Z"
+                />
+              </svg>
+            </button>
+          ) : (
+            <>
+              {" "}
+              <button
+                onClick={stopRecording}
+                disabled={!isRecording}
+                className={"p-2 px-4 bg-rose-600 rounded-full"}
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
+                  className="size-6"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"
+                  />
+                </svg>
+              </button>{" "}
+              <button
+                type="submit"
+                onClick={() => { stopRecording(); audioSendHandle(); }}
+                disabled={!isRecording}
+                className="p-2 px-4 bg-purple-600 rounded-full"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
+                  className="size-6 -rotate-45"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5"
+                  />
+                </svg>
+              </button>{" "}
+            </>
+          )
+        ) : (
+          <button
+            type="submit"
+            className="p-2 px-4 bg-green-600 rounded-full"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={1.5}
+              stroke="currentColor"
+              className="size-6 -rotate-45"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5"
+              />
+            </svg>
+          </button>
+        )}
+
+      </form>
+}

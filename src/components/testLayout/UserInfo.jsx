@@ -1,27 +1,38 @@
 import moment from "moment";
 import React, { useState } from "react";
 import ModalImage from "react-modal-image";
+import { useSelector } from "react-redux";
 
-const UserInfo = ({ showInfo, setShowInfo, id }) => {
-  const images = [
-    "https://i.pinimg.com/originals/74/62/97/746297d9c22c5262fc359dac640c23b4.gif",
-    "https://pics.craiyon.com/2023-06-28/b0931868d81346b68f5964f0c393b2fe.webp",
-    "https://wallpapercave.com/wp/wp12329072.jpg",
-    "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT2GkPejKNDZwT-pdA9eHflGX-aoixsLYq6JA&s",
-    "https://img.freepik.com/premium-photo/cute-handsome-anime-boy_675932-411.jpg",
-  ];
+const UserInfo = ({ showInfo, setShowInfo, id,chatData }) => {
 
-  const [currentImageIndex, setCurrentImageIndex] = useState(images.length - 1);
+  const {user} = useSelector(state => state.auth)
+  const chaterData = chatData?.members.find((i)=> i?._id?.toString() !== user);
+
+
+
+
+
+  // const images = [
+  //   "https://i.pinimg.com/originals/74/62/97/746297d9c22c5262fc359dac640c23b4.gif",
+  //   "https://pics.craiyon.com/2023-06-28/b0931868d81346b68f5964f0c393b2fe.webp",
+  //   "https://wallpapercave.com/wp/wp12329072.jpg",
+  //   "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT2GkPejKNDZwT-pdA9eHflGX-aoixsLYq6JA&s",
+  //   "https://img.freepik.com/premium-photo/cute-handsome-anime-boy_675932-411.jpg",
+  // ];
+
+  // const [currentImageIndex, setCurrentImageIndex] = useState(chatData?.imgUrl.length -1);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
 
   const handleNextImage = () => {
     setCurrentImageIndex((prevIndex) =>
-      prevIndex === images.length - 1 ? 0 : prevIndex + 1
+      prevIndex === chatData?.imgUrl.length - 1 ? 0 : prevIndex + 1
     );
   };
 
   const handlePrevImage = () => {
     setCurrentImageIndex((prevIndex) =>
-      prevIndex === 0 ? images.length - 1 : prevIndex - 1
+      prevIndex === 0 ? chatData?.imgUrl.length - 1 : prevIndex - 1
     );
   };
 
@@ -77,15 +88,16 @@ const UserInfo = ({ showInfo, setShowInfo, id }) => {
       <div className="h-full overflow-auto scrollEditclass">
         <div className="flex flex-col items-center">
           <div className="relative w-full">
-            <h1 className="absolute mt-3 left-1/2 top-0 transform -translate-y-1/2 text-2xl">
-              {currentImageIndex + 1}/{images.length}
-            </h1>
+            {chatData?.groupChat && <h1 className="absolute mt-3 left-1/2 top-0 transform -translate-y-1/2 text-2xl">
+              {currentImageIndex + 1}/{chatData?.imgUrl.length}
+            </h1>}
             <ModalImage
-              small={images[currentImageIndex]}
-              large={images[currentImageIndex]} // Replace with your actual image URL
+              small={!chatData?.groupChat?chaterData?.avatar:chatData?.imgUrl[currentImageIndex]}
+              large={!chatData?.groupChat?chaterData?.avatar:chatData?.imgUrl[currentImageIndex]} // Replace with your actual image URL
               alt="Preview Image"
               className="w-full h-96 object-cover"
             />
+            {chatData?.groupChat && <>
             <button
               onClick={handlePrevImage}
               className="absolute left-0 top-1/2 transform -translate-y-1/2  text-gray-600 hover:text-white  text-5xl h-full pr-5 pl-5 p-1"
@@ -98,6 +110,7 @@ const UserInfo = ({ showInfo, setShowInfo, id }) => {
             >
               &gt;
             </button>
+            </>}
           </div>
         </div>
         <div className="my-4 flex flex-col gap-2">
@@ -117,13 +130,13 @@ const UserInfo = ({ showInfo, setShowInfo, id }) => {
               />
             </svg>
             <div>
-              <h3 className="font-bold">Aakash</h3>
+              <h3 className="font-bold">{chatData?.groupChat?chatData?.name:chaterData?.name}</h3>
               <p className="text-sm text-gray-400">
-                last seen {moment("2023-10-05T17:18:01.959Z").fromNow()}
+                last seen {moment(chatData?.createdAt).fromNow()}
               </p>
             </div>
           </div>
-          <div className="flex w-[90%] rounded-xl hover:bg-gray-600 items-center p-2 m-auto gap-5 cursor-pointer ">
+          {chatData?.groupChat || <div className="flex w-[90%] rounded-xl hover:bg-gray-600 items-center p-2 m-auto gap-5 cursor-pointer ">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
@@ -140,10 +153,10 @@ const UserInfo = ({ showInfo, setShowInfo, id }) => {
             </svg>
 
             <div>
-              <h3 className="font-bold">@realllraja</h3>
+              <h3 className="font-bold">@{chaterData?.username}</h3>
               <p className="text-sm text-gray-400">Username</p>
             </div>
-          </div>
+          </div>}
           <div className="flex w-[90%] rounded-xl hover:bg-gray-600 items-center p-2 m-auto gap-5 cursor-pointer ">
             <svg
               xmlns="http://www.w3.org/2000/svg"
