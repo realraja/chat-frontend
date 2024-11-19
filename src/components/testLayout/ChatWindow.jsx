@@ -134,7 +134,7 @@ const messages = [
   },
   // Add more messages as needed
 ];
-const ChatWindow = ({ chater, setShowInfo, showInfo }) => {
+const ChatWindow = ({paramId, chater, setShowInfo, showInfo }) => {
 
   // const ChatDetails = useGetChatDetailsQuery({chatId: id,skip:!id});
   // console.log(ChatDetails.data);
@@ -155,7 +155,7 @@ const ChatWindow = ({ chater, setShowInfo, showInfo }) => {
       className={` ${showInfo
           ? "max-sm:hidden sm:hidden md:flex md:w-1/2"
           : "max-sm:w-full sm:w-full md:w-3/4"
-        } h-[calc(100dvh)] flex flex-col bg-gray-900 text-white relative ${id ? "" : "max-sm:hidden sm:hidden md:flex"
+        } h-[calc(100dvh)] flex flex-col bg-gray-900 text-white relative ${paramId ? "" : "max-sm:hidden sm:hidden md:flex"
         }`}
     >
       <div className="p-3 border-b border-gray-700 flex items-center gap-5">
