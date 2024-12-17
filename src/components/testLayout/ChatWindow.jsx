@@ -72,7 +72,7 @@ const ChatWindow = ({ paramId, chater, setShowInfo, showInfo }) => {
   
       // Check if already loading or at the last page
       if (container && container.scrollTop === 0 && !loadingOldMessages && page < totalPages) {
-        toast.success('Loading more messages...');
+        // toast.success('Loading more messages...');
         loadMoreMessages();
       }
     };
@@ -83,7 +83,21 @@ const ChatWindow = ({ paramId, chater, setShowInfo, showInfo }) => {
     return () => container?.removeEventListener("scroll", handleScroll);
   }, [page, totalPages, loadingOldMessages]); // Add dependencies
   
+  // check bug
+  // useEffect(() => {
+  //   const handleScroll = () => {
+  //     const container = scrollRef.current;
+  //     if (container && container.scrollTop === 0  && page <= totalPages) {
+  //       toast.success('running');
+  //       loadMoreMessages();
+  //     }
+  //   };
 
+  //   const container = scrollRef.current;
+  //   container?.addEventListener("scroll", handleScroll);
+
+  //   return () => container?.removeEventListener("scroll", handleScroll);
+  // }, []);
   const setBottomFunction =() =>{
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -286,7 +300,7 @@ const TextMessageComponent = ({chatId,members,socket,setMessages,setBottom}) =>{
   const newMessageHandler = useCallback((data)=>{
     // console.log(data);
     setMessages((prev)=> [...prev,data.message ])
-    toast.success(data.message.content);
+    // toast.success(data.message.content);
     setTimeout(() => {
       setBottom()
     }, 1);
