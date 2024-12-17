@@ -155,13 +155,13 @@ const Sidebar = ({ id }) => {
     >
 
       <div className="flex h-full flex-col">
-        <div className="h-fit flex justify-between items-center gap-5 py-3 px-2 border-b border-gray-700">
+        <div className="h-fit flex justify-between items-center gap-5 py-2 px-2 border-b border-gray-700">
           <MenuDialog refetch={refetch} />
           <input
             // onInput={() => setIsSearch(true)}
             // onBlur={()=> searchText || setIsSearch(false)}
             value={searchText}
-            onChange={(e) => {
+            onChange={(e) => { 
               setSearchText(e.target.value);
             }}
             type="search"
@@ -240,7 +240,7 @@ export default Sidebar;
 
 const ChatListComponent = ({ avatar, _id, name, updatedAt, navigate, user }) => {
   return (
-    <li onClick={() => navigate("/chat/" + _id)} className="mb-4 cursor-pointer hover:bg-gray-700 p-2 rounded flex items-center">
+    <li className="mb-4 cursor-pointer hover:bg-gray-700 p-2 rounded flex items-center">
       <ModalImage
         small={avatar}
         large={avatar}
@@ -249,6 +249,7 @@ const ChatListComponent = ({ avatar, _id, name, updatedAt, navigate, user }) => 
       />
       <div
         className="flex justify-between w-full"
+        onClick={() => navigate("/chat/" + _id)}
       >
         <div>
           <h3 className="text-lg font-semibold">

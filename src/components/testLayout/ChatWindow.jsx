@@ -1,163 +1,106 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import ModalImage from "react-modal-image";
 import { Link } from "react-router-dom";
 import { GetSoket } from "../../socket/socket";
 import { NEW_MESSAGE } from "../../constants/events";
 import { useSelector } from "react-redux";
 import toast from "react-hot-toast";
-// import { useGetChatDetailsQuery } from "../../redux/api/api";
+import { useSocketEvents } from "../../hooks/hook";
+import { useGetMessagesQuery } from "../../redux/api/api";
 
-const messages = [
-  {
-    sender: "Telegram",
-    content:
-      "Just for you, we have developed an unrealistically cool application...",
-    time: "08:53 PM",
-    type: "text",
-  },
-  {
-    sender: "You",
-    content:
-      "Just for you, we have developed an unrealistically for you, we have developed an unrealistically for you, we have developed an unrealistically cool developed an unrealistically cool application...",
-    time: "08:53 PM",
-    type: "text",
-  },
-  {
-    sender: "Telegram",
-    content:
-      "Just for you, we have developed an unrealistically cool application...",
-    time: "08:53 PM",
-    type: "text",
-  },
-  {
-    sender: "You",
-    content: "1000062192.jpg",
-    time: "03:20 PM",
-    type: "image",
-  },
-  {
-    sender: "Telegram",
-    content:
-      "https://res.cloudinary.com/dwc3gwskl/image/upload/v1716375508/native_todoApp/ypxtu24iiq6yameluqfz.jpg",
-    time: "03:20 PM",
-    type: "image",
-  },
-  {
-    sender: "Telegram",
-    content:
-      "https://res.cloudinary.com/dwc3gwskl/image/upload/v1717480397/native_todoApp_task/auiqwdoshb8vqvmro9bc.jpg",
-    time: "03:20 PM",
-    type: "image",
-  },
-  {
-    sender: "You",
-    content:
-      "https://res.cloudinary.com/dwc3gwskl/image/upload/v1716375508/native_todoApp/ypxtu24iiq6yameluqfz.jpg",
-    time: "03:20 PM",
-    type: "image",
-  },
-  {
-    sender: "Telegram",
-    content:
-      "https://res.cloudinary.com/dwc3gwskl/image/upload/v1716375508/native_todoApp/ypxtu24iiq6yameluqfz.jpg",
-    time: "03:20 PM",
-    type: "image",
-  },
-  {
-    sender: "Telegram",
-    content: "kya huaa",
-    time: "03:20 PM",
-    type: "image",
-  },
-  {
-    sender: "You",
-    content:
-      "https://res.cloudinary.com/dwc3gwskl/raw/upload/v1719539368/native_todoApp_task/bcbblputoz0uwheczcqa.html",
-    time: "03:20 PM",
-    type: "image",
-  },
-  {
-    sender: "You",
-    content:
-      "https://res.cloudinary.com/dwc3gwskl/raw/upload/v1719539286/native_todoApp_task/hdqe3k99aqvosxfztvla.txt",
-    time: "03:20 PM",
-    type: "image",
-  },
-  {
-    sender: "Telegram",
-    content:
-      "https://res.cloudinary.com/dwc3gwskl/image/upload/v1716375508/native_todoApp/ypxtu24iiq6yameluqfz.jpg",
-    time: "03:20 PM",
-    type: "image",
-  },
-  {
-    sender: "You",
-    content:
-      "https://res.cloudinary.com/dwc3gwskl/image/upload/v1717260770/native_todoApp_task/s3c1ko4pfkqqsnfaxeic.jpg",
-    time: "03:20 PM",
-    type: "image",
-  },
-  {
-    sender: "You",
-    content:
-      "https://res.cloudinary.com/dwc3gwskl/image/upload/v1716375508/native_todoApp/ypxtu24iiq6yameluqfz.jpg",
-    time: "03:20 PM",
-    type: "image",
-  },
-  {
-    sender: "Telegram",
-    content:
-      "https://res.cloudinary.com/dwc3gwskl/video/upload/v1717231214/sfcfphznqzmob6xsmop8.mp3",
-    time: "03:20 PM",
-    type: "image",
-  },
-  {
-    sender: "You",
-    content:
-      "https://res.cloudinary.com/dwc3gwskl/image/upload/v1716375508/native_todoApp/ypxtu24iiq6yameluqfz.jpg",
-    time: "03:20 PM",
-    type: "image",
-  },
-  {
-    sender: "Telegram",
-    content:
-      "https://res.cloudinary.com/dwc3gwskl/video/upload/v1719539141/smnwbqepusb71eflbgex.mp4",
-    time: "03:20 PM",
-    type: "image",
-  },
-  {
-    sender: "You",
-    content:
-      "https://res.cloudinary.com/dwc3gwskl/image/upload/v1716375508/native_todoApp/ypxtu24iiq6yameluqfz.jpg",
-    time: "03:20 PM",
-    type: "image",
-  },
-  // Add more messages as needed
-];
-const ChatWindow = ({paramId, chater, setShowInfo, showInfo }) => {
-
-  // const ChatDetails = useGetChatDetailsQuery({chatId: id,skip:!id});
-  // console.log(ChatDetails.data);
+const ChatWindow = ({ paramId, chater, setShowInfo, showInfo }) => {
   const socket = GetSoket();
 
+  const [messages, setMessages] = useState([]);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [loadingOldMessages, setLoadingOldMessages] = useState(false);
 
-  const {user} = useSelector(state => state.auth)
-
+  const { user } = useSelector((state) => state.auth);
   const id = chater?._id;
   const members = chater?.members;
-  const chaterData = chater?.members.find((i)=> i?._id?.toString() !== user);
-  // console.log(chaterData)
+  const chaterData = chater?.members.find(
+    (i) => i?._id?.toString() !== user
+  );
 
+  const oldMessagesChunk = useGetMessagesQuery({ chatId: id, page });
+  const scrollRef = useRef(null); // Ref for the messages container
+  // console.log(totalPages)
+  // Auto-scroll to bottom on new messages
   
+
+  // Append old messages when page changes
+  console.log(totalPages,oldMessagesChunk.data)
+  
+  useEffect(() => {
+    if (oldMessagesChunk?.data?.message) {
+      setTotalPages(oldMessagesChunk?.data?.totalPages);
+      const container = scrollRef.current;
+
+      // Remember scroll position before loading old messages
+      const prevScrollHeight = container?.scrollHeight;
+
+      setMessages((prev) => [
+        ...oldMessagesChunk?.data?.message,
+        ...prev,
+      ]);
+      setLoadingOldMessages(false);
+
+      // Restore scroll position after old messages load
+      setTimeout(() => {
+        if (container) {
+          container.scrollTop = container.scrollHeight - prevScrollHeight;
+        }
+      }, 0);
+    }
+  }, [oldMessagesChunk]);
+
+  // console.log(totalPages,page,page <= totalPages,!loadingOldMessages,!loadingOldMessages && page <= totalPages*1)
+  // Function to load more messages
+  const loadMoreMessages = () => {
+    // console.log(totalPages)
+    if (!loadingOldMessages) {
+      setLoadingOldMessages(true);
+      setPage((prev) => prev + 1);
+    }
+  };
+
+  // Detect scroll to top for loading more messages
+  useEffect(() => {
+    const handleScroll = () => {
+      const container = scrollRef.current;
+  
+      // Check if already loading or at the last page
+      if (container && container.scrollTop === 0 && !loadingOldMessages && page < totalPages) {
+        toast.success('Loading more messages...');
+        loadMoreMessages();
+      }
+    };
+  
+    const container = scrollRef.current;
+    container?.addEventListener("scroll", handleScroll);
+  
+    return () => container?.removeEventListener("scroll", handleScroll);
+  }, [page, totalPages, loadingOldMessages]); // Add dependencies
+  
+
+  const setBottomFunction =() =>{
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }
 
   return (
     <div
-      className={` ${showInfo
+      className={` ${
+        showInfo
           ? "max-sm:hidden sm:hidden md:flex md:w-1/2"
           : "max-sm:w-full sm:w-full md:w-3/4"
-        } h-[calc(100dvh)] flex flex-col bg-gray-900 text-white relative ${paramId ? "" : "max-sm:hidden sm:hidden md:flex"
-        }`}
+      } h-[calc(100dvh)] flex flex-col bg-gray-900 text-white relative ${
+        paramId ? "" : "max-sm:hidden sm:hidden md:flex"
+      }`}
     >
+      {/* Header */}
       <div className="p-3 border-b border-gray-700 flex items-center gap-5">
         <Link
           className={`cursor-pointer max-sm:block sm:block md:hidden`}
@@ -180,20 +123,27 @@ const ChatWindow = ({paramId, chater, setShowInfo, showInfo }) => {
         </Link>
         <div
           onClick={() => setShowInfo(!showInfo)}
-          className="flex w-full justify-between items-center  cursor-pointer"
+          className="flex w-full justify-between items-center cursor-pointer"
         >
           <div className="flex">
             <img
-              src={chater?.groupChat?chater?.imgUrl[0]:chaterData?.avatar}
+              src={
+                chater?.groupChat ? chater?.imgUrl[0] : chaterData?.avatar
+              }
               alt={"conv.name"}
               className="w-10 h-10 rounded-full mr-4 object-cover"
             />
-            <h2 className="text-2xl font-bold">{chater?.groupChat?chater?.name:chaterData?.name}</h2>
+            <h2 className="text-2xl font-bold">
+              {chater?.groupChat ? chater?.name : chaterData?.name}
+            </h2>
           </div>
           <p className="text-sm text-gray-400">last seen 6/23/2024</p>
         </div>
       </div>
+
+      {/* Messages Container */}
       <div
+        ref={scrollRef}
         className="flex-grow p-4 overflow-y-auto scrollEditclass pb-20"
         style={{
           background:
@@ -202,12 +152,35 @@ const ChatWindow = ({paramId, chater, setShowInfo, showInfo }) => {
           backgroundSize: "cover",
         }}
       >
+        {loadingOldMessages && (
+          <div className="text-center text-gray-400">Loading...</div>
+        )}
         {messages.map((msg, index) => (
-          <div
-            key={index}
-            className={`mb-4 ${msg.sender === "You" ? "text-right" : ""}`}
+          <MessageComponent key={index} msg={msg} user={user} />
+        ))}
+      </div>
+
+      {/* Input Area */}
+      <div>
+        <TextMessageComponent
+          chatId={id}
+          members={members}
+          socket={socket}
+          setMessages={setMessages}
+          setBottom={setBottomFunction}
+        />
+      </div>
+    </div>
+  );
+};
+
+export default ChatWindow;
+
+const MessageComponent = ({msg,user}) =>(
+  <div
+            className={`mb-4 ${msg.sender._id === user ? "text-right" : ""}`}
           >
-            {msg.type === "text" ? (
+            {msg.type !== "text" ? (
               <p
                 className={`inline-block p-2 max-w-[90%] text-start rounded-lg ${msg.sender === "You" ? "bg-blue-600" : "bg-gray-700"
                   }`}
@@ -215,11 +188,6 @@ const ChatWindow = ({paramId, chater, setShowInfo, showInfo }) => {
                 {msg.content}
               </p>
             ) : (
-              // <img
-              //   src={msg.content}
-              //   alt="Attachment"
-              //   className="inline-block rounded-lg bg-gray-700 w-20"
-              // />
               <ModalImage
                 small={msg.content}
                 large={msg.content}
@@ -229,24 +197,9 @@ const ChatWindow = ({paramId, chater, setShowInfo, showInfo }) => {
             )}
             <p className="text-xs text-gray-400">{msg.time}</p>
           </div>
+)
 
-        ))}
-        {/* {mediaBlobUrl && <audio src={mediaBlobUrl} controls className="inline-block p-2 max-w-[90%] text-start rounded-lg" />} */}
-      </div>
-      
-
-      <div>
-        <TextMessageComponent chatId={id} members={members} socket={socket} />
-      </div>
-    </div>
-  );
-};
-
-export default ChatWindow;
-
-
-
-const TextMessageComponent = ({chatId,members,socket}) =>{
+const TextMessageComponent = ({chatId,members,socket,setMessages,setBottom}) =>{
 
   const [message, setMessage] = useState("");
   const [recordingTime, setRecordingTime] = useState(0);
@@ -326,16 +279,29 @@ const TextMessageComponent = ({chatId,members,socket}) =>{
     if(!message.trim()) return;
 
     socket.emit(NEW_MESSAGE,{chatId,members,message})
-    console.log(message);
+    // console.log(message);
     setMessage('');
   }
 
-  useEffect(()=>{
-    socket.on(NEW_MESSAGE,(data)=>{
-      console.log(data);
-      toast.success(data.message.content);
-    })
-  },[socket])
+  const newMessageHandler = useCallback((data)=>{
+    // console.log(data);
+    setMessages((prev)=> [...prev,data.message ])
+    toast.success(data.message.content);
+    setTimeout(() => {
+      setBottom()
+    }, 1);
+  },[]);
+
+  const eventHandlersArr = {[NEW_MESSAGE]:newMessageHandler};
+
+  useSocketEvents(socket,eventHandlersArr);
+
+  // useEffect(()=>{
+  //   socket.on(NEW_MESSAGE,(data)=>{
+  //     console.log(data);
+  //     toast.success(data.message.content);
+  //   })
+  // },[socket])
 
 
  return <form onSubmit={submitMessage}
@@ -469,3 +435,149 @@ const TextMessageComponent = ({chatId,members,socket}) =>{
 
       </form>
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// import { useGetChatDetailsQuery } from "../../redux/api/api";
+
+// const Messages = [
+//   {
+//     sender: "Telegram",
+//     content:
+//       "Just for you, we have developed an unrealistically cool application...",
+//     time: "08:53 PM",
+//     type: "text",
+//   },
+//   {
+//     sender: "You",
+//     content:
+//       "Just for you, we have developed an unrealistically for you, we have developed an unrealistically for you, we have developed an unrealistically cool developed an unrealistically cool application...",
+//     time: "08:53 PM",
+//     type: "text",
+//   },
+//   {
+//     sender: "Telegram",
+//     content:
+//       "Just for you, we have developed an unrealistically cool application...",
+//     time: "08:53 PM",
+//     type: "text",
+//   },
+//   {
+//     sender: "You",
+//     content: "1000062192.jpg",
+//     time: "03:20 PM",
+//     type: "image",
+//   },
+//   {
+//     sender: "Telegram",
+//     content:
+//       "https://res.cloudinary.com/dwc3gwskl/image/upload/v1716375508/native_todoApp/ypxtu24iiq6yameluqfz.jpg",
+//     time: "03:20 PM",
+//     type: "image",
+//   },
+//   {
+//     sender: "Telegram",
+//     content:
+//       "https://res.cloudinary.com/dwc3gwskl/image/upload/v1717480397/native_todoApp_task/auiqwdoshb8vqvmro9bc.jpg",
+//     time: "03:20 PM",
+//     type: "image",
+//   },
+//   {
+//     sender: "You",
+//     content:
+//       "https://res.cloudinary.com/dwc3gwskl/image/upload/v1716375508/native_todoApp/ypxtu24iiq6yameluqfz.jpg",
+//     time: "03:20 PM",
+//     type: "image",
+//   },
+//   {
+//     sender: "Telegram",
+//     content:
+//       "https://res.cloudinary.com/dwc3gwskl/image/upload/v1716375508/native_todoApp/ypxtu24iiq6yameluqfz.jpg",
+//     time: "03:20 PM",
+//     type: "image",
+//   },
+//   {
+//     sender: "Telegram",
+//     content: "kya huaa",
+//     time: "03:20 PM",
+//     type: "image",
+//   },
+//   {
+//     sender: "You",
+//     content:
+//       "https://res.cloudinary.com/dwc3gwskl/raw/upload/v1719539368/native_todoApp_task/bcbblputoz0uwheczcqa.html",
+//     time: "03:20 PM",
+//     type: "image",
+//   },
+//   {
+//     sender: "You",
+//     content:
+//       "https://res.cloudinary.com/dwc3gwskl/raw/upload/v1719539286/native_todoApp_task/hdqe3k99aqvosxfztvla.txt",
+//     time: "03:20 PM",
+//     type: "image",
+//   },
+//   {
+//     sender: "Telegram",
+//     content:
+//       "https://res.cloudinary.com/dwc3gwskl/image/upload/v1716375508/native_todoApp/ypxtu24iiq6yameluqfz.jpg",
+//     time: "03:20 PM",
+//     type: "image",
+//   },
+//   {
+//     sender: "You",
+//     content:
+//       "https://res.cloudinary.com/dwc3gwskl/image/upload/v1717260770/native_todoApp_task/s3c1ko4pfkqqsnfaxeic.jpg",
+//     time: "03:20 PM",
+//     type: "image",
+//   },
+//   {
+//     sender: "You",
+//     content:
+//       "https://res.cloudinary.com/dwc3gwskl/image/upload/v1716375508/native_todoApp/ypxtu24iiq6yameluqfz.jpg",
+//     time: "03:20 PM",
+//     type: "image",
+//   },
+//   {
+//     sender: "Telegram",
+//     content:
+//       "https://res.cloudinary.com/dwc3gwskl/video/upload/v1717231214/sfcfphznqzmob6xsmop8.mp3",
+//     time: "03:20 PM",
+//     type: "image",
+//   },
+//   {
+//     sender: "You",
+//     content:
+//       "https://res.cloudinary.com/dwc3gwskl/image/upload/v1716375508/native_todoApp/ypxtu24iiq6yameluqfz.jpg",
+//     time: "03:20 PM",
+//     type: "image",
+//   },
+//   {
+//     sender: "Telegram",
+//     content:
+//       "https://res.cloudinary.com/dwc3gwskl/video/upload/v1719539141/smnwbqepusb71eflbgex.mp4",
+//     time: "03:20 PM",
+//     type: "image",
+//   },
+//   {
+//     sender: "You",
+//     content:
+//       "https://res.cloudinary.com/dwc3gwskl/image/upload/v1716375508/native_todoApp/ypxtu24iiq6yameluqfz.jpg",
+//     time: "03:20 PM",
+//     type: "image",
+//   },
+//   // Add more messages as needed
+// ];

@@ -26,9 +26,11 @@ const Home = () => {
   <div className="flex h-[calc(100dvh)]">
       <Sidebar id={id} />
       
+      {id && ChatDetails && <>
       <ChatWindow paramId={id} chater={ChatDetails?.data?.chat} setShowInfo={setUserInfoShow} showInfo={userInfoShow} />
 
       <UserInfo id={id} chatData={ChatDetails?.data?.chat} setShowInfo={setUserInfoShow} showInfo={userInfoShow} />
+      </>}
     </div>
     </>
   )

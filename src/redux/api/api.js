@@ -4,7 +4,7 @@ import { server } from "../../constants/config";
 const api = createApi({
   reducerPath: "api",
   baseQuery: fetchBaseQuery({ baseUrl: server }),
-  tagTypes: ["Chat"],
+  tagTypes: ["Chat","User","Message"],
 
   endpoints: (builder) => ({
     myChats: builder.query({
@@ -63,6 +63,13 @@ const api = createApi({
         }},
         providesTags: ['Chat'],
       }),
+      getMessages: builder.query({
+        query: ({chatId,page}) => ({
+          url: `chat/message/${chatId}?page=${page}`,
+          credentials: "include",
+        }),
+        providesTags: ['Message'],
+      }),
 
 
   }),
@@ -74,6 +81,7 @@ export const {
   useSendGroupJoinRequestMutation,
   useGetNotificationsQuery,
   useAcceptRequestMutation,
-  useGetChatDetailsQuery
+  useGetChatDetailsQuery,
+  useGetMessagesQuery
 } = api;
 export default api;
