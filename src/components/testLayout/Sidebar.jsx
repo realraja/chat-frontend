@@ -127,9 +127,10 @@ const Sidebar = ({ id }) => {
   // console.log(searchList)
 
   const [searchUser] = useLazySearchUserQuery();
-  const { isLoading, refetch, data } = useMyChatsQuery("");
+  const { isLoading, refetch, data,error } = useMyChatsQuery("");
   // const {isLoading,isError,error,refetch,data} = useMyChatsQuery('');
   // console.log(data);
+  console.log(error)
 
   useEffect(() => {
     if (searchText.length > 0) {
