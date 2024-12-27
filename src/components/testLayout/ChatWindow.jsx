@@ -24,21 +24,26 @@ const ChatWindow = ({ paramId, chater, setShowInfo, showInfo }) => {
     (i) => i?._id?.toString() !== user
   );
 
-  const oldMessagesChunk = useGetMessagesQuery({ chatId: id, page });
+  const oldMessagesChunk = useGetMessagesQuery({ chatId: paramId, page });
   const scrollRef = useRef(null); // Ref for the messages container
   // console.log(totalPages)
   // Auto-scroll to bottom on new messages
 
 
   // Append old messages when page changes
-  console.log(totalPages, oldMessagesChunk.data)
+  // console.log(totalPages, oldMessagesChunk.data)
+
+useEffect(() => {
+  return ()=> {
+    setMessages([]);
+  setPage(1); // Reset the page to start fresh
+  setTotalPages(1); // Reset total pages
+  }
+}, [paramId]);
 
   useEffect(() => {
-    setMessages([])
-  }, [paramId])
-
-  useEffect(() => {
-    if (oldMessagesChunk?.data?.message) {
+    if (oldMessagesChunk?.data?.message && oldMessagesChunk?.data?.page == page) {
+      // console.log(oldMessagesChunk?.data)
       setTotalPages(oldMessagesChunk?.data?.totalPages);
       const container = scrollRef.current;
 
@@ -59,6 +64,8 @@ const ChatWindow = ({ paramId, chater, setShowInfo, showInfo }) => {
       }, 0);
     }
   }, [oldMessagesChunk]);
+
+
 
   // console.log(totalPages,page,page <= totalPages,!loadingOldMessages,!loadingOldMessages && page <= totalPages*1)
   // Function to load more messages
@@ -215,9 +222,8 @@ const MessageComponent = ({ msg, user }) => (
           // console.log(url)
           const smallUrl = url.replace('upload/',`upload/dpr_auto/h_350/`);
           // For images
-          return (<div className="min-h-[250px]">
-            <ModalImage
-              key={_id}
+          return (<div key={_id} className="min-h-[250px]">
+            <ModalImage              
               small={smallUrl}
               large={url}
               alt="Preview Image"
@@ -226,16 +232,16 @@ const MessageComponent = ({ msg, user }) => (
           </div>);
         } else if (['mp3', 'wav', 'webm', 'ogg', 'm4a'].includes(extension)) {
           // For audio files
-          return (<div className="max-h-20">
-            <audio key={_id} controls className="inline-block h-16 my-2">
+          return (<div key={_id} className="max-h-20">
+            <audio  controls className="inline-block h-16 my-2">
               <source src={url} type={`audio/${extension}`} />
               Your browser does not support the audio element.
             </audio>
           </div>);
         } else if (['mp4', 'ogg'].includes(extension)) {
           // For video files
-          return (<div className="min-h-[300px]">
-            <video key={_id} controls className="inline-block h-[300px] my-2">
+          return (<div key={_id} className="min-h-[300px]">
+            <video  controls className="inline-block h-[300px] my-2">
               <source src={url} type={`video/${extension}`} />
               Your browser does not support the video element.
             </video>
@@ -244,6 +250,7 @@ const MessageComponent = ({ msg, user }) => (
           // For other file types (e.g., PDFs, documents, etc.)
           return (
             <a
+            key={_id}
               href={url}
               target="_blank"
               rel="noopener noreferrer"
@@ -440,7 +447,7 @@ const TextMessageComponent = ({ chatId, members, socket, setMessages, setBottom 
   }
 
   const newMessageHandler = useCallback((data) => {
-    console.log(data);
+    // console.log(data);
     setMessages((prev) => [...prev, data.message])
     // toast.success(data.message.content);
     setTimeout(() => {

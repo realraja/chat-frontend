@@ -130,7 +130,7 @@ const Sidebar = ({ id }) => {
   const { isLoading, refetch, data,error } = useMyChatsQuery("");
   // const {isLoading,isError,error,refetch,data} = useMyChatsQuery('');
   // console.log(data);
-  console.log(error)
+  // console.log(error)
 
   useEffect(() => {
     if (searchText.length > 0) {
