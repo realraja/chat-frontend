@@ -346,15 +346,21 @@ const SearchListUserComponent = ({
   refetch,
 }) => {
   const handleChat = async () => {
-    const { data } = await axios.post(
-      `${server}/chat/new/chat`,
-      { member: _id },
-      config
-    );
-    navigate("/chat/" + data.chat._id);
-    toast.success(data.message);
-    setSearchText("");
-    refetch();
+    console.log(_id)
+    try {
+      const { data } = await axios.post(
+        `${server}/chat/new/chat`,
+        { member: _id },
+        config
+      );
+      navigate("/chat/" + data.chat._id);
+      toast.success(data.message);
+      setSearchText("");
+      refetch();
+    } catch (error) {
+      console.log(error);
+      toast.error(error.message);
+    }
   };
 
   return (

@@ -211,14 +211,17 @@ const MessageComponent = ({ msg, user }) => (
 
         // Conditional rendering based on file type
         if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(extension)) {
+          // /dpr_auto/h_200
+          // console.log(url)
+          const smallUrl = url.replace('upload/',`upload/dpr_auto/h_350/`);
           // For images
-          return (<div className="min-h-[400px]">
+          return (<div className="min-h-[250px]">
             <ModalImage
               key={_id}
-              small={url}
+              small={smallUrl}
               large={url}
               alt="Preview Image"
-              className="inline-block rounded-lg bg-gray-700 h-[400px] my-0.5"
+              className="inline-block rounded-lg bg-gray-700/50 h-[250px] w-[70vw] object-contain my-0.5"
             />
           </div>);
         } else if (['mp3', 'wav', 'webm', 'ogg', 'm4a'].includes(extension)) {
@@ -368,7 +371,7 @@ const TextMessageComponent = ({ chatId, members, socket, setMessages, setBottom 
 
       const res = await sendAttachments(myForm);
 
-      console.log(res);
+      // console.log(res);
 
       if (res.data) { toast.success(`${fileType} sent successfully!`, { id: toastId }); } else { toast.error(`${fileType} failed to send!`, { id: toastId }); }
     } catch (error) {
@@ -395,7 +398,7 @@ const TextMessageComponent = ({ chatId, members, socket, setMessages, setBottom 
       const myForm = new FormData();
       myForm.append("chatId", chatId);
       myForm.append("files", mediaBlob);
-      console.log("FormData Content:", Array.from(myForm.entries()));
+      // console.log("FormData Content:", Array.from(myForm.entries()));
 
       // Send the request
       const res = await sendAttachments(myForm);
@@ -437,7 +440,7 @@ const TextMessageComponent = ({ chatId, members, socket, setMessages, setBottom 
   }
 
   const newMessageHandler = useCallback((data) => {
-    // console.log(data);
+    console.log(data);
     setMessages((prev) => [...prev, data.message])
     // toast.success(data.message.content);
     setTimeout(() => {
@@ -660,7 +663,7 @@ const TextMessageComponent = ({ chatId, members, socket, setMessages, setBottom 
               disabled={!isRecording}
               className="p-2 px-4 bg-purple-600 rounded-full"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-6">
                 <path fill-rule="evenodd" d="M4.5 7.5a3 3 0 0 1 3-3h9a3 3 0 0 1 3 3v9a3 3 0 0 1-3 3h-9a3 3 0 0 1-3-3v-9Z" clip-rule="evenodd" />
               </svg>
 
