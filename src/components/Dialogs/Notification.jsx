@@ -1,7 +1,10 @@
-import { Fragment, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import { useAcceptRequestMutation, useGetNotificationsQuery } from "../../redux/api/api";
 import toast from "react-hot-toast";
+import { useDispatch } from "react-redux";
+import { setNotification } from "../../redux/slicer/chat";
+import { PropagateLoader } from "react-spinners";
 
 // const requests = [
 //     {
@@ -25,11 +28,19 @@ export default function NotificationDialog({
   confirmState,
   setConfirmState,
 }) {
+  const dispatch = useDispatch()
   const cancelButtonRef = useRef(null);
 
-  const {isLoading,data,error,isError} = useGetNotificationsQuery();
+  const { isLoading, data, error, isError, refetch } = useGetNotificationsQuery();
 
-//   console.log(data.request);
+  //   console.log(data.request);
+  useEffect(() => {
+    refetch();
+  }, [confirmState]);
+  useEffect(() => {
+    // console.log(data)
+    dispatch(setNotification(data?.request?.length || 0));
+  }, [data, dispatch]);
 
 
 
@@ -89,12 +100,17 @@ export default function NotificationDialog({
                           </svg>
                           Group Join Requests
                         </Dialog.Title>
-                        <JoinGroupNotification requests={data?.request} />
+                        <div className="h-72 overflow-auto scrollEditclass">
+                          {isLoading ? <div className="flex items-center justify-center my-5">
+                            {" "}
+                            <PropagateLoader color="#2a90cf" size={70} speedMultiplier={1.5} />
+                          </div> : <JoinGroupNotification requests={data?.request} refetch={refetch} />}
+                        </div>
                       </div>
                     </div>
                   </div>
                   <div className="bg-gray-700 px-4 py-3 sm:flex sm:flex-row-reverse">
-                    
+
                     <button
                       type="button"
                       className="mt-3 inline-flex w-full justify-center rounded-md bg-transparent px-4 py-2 text-gray-300 shadow-sm ring-1 ring-inset ring-gray-600 sm:mt-0 sm:w-auto"
@@ -115,26 +131,28 @@ export default function NotificationDialog({
 }
 
 
-const JoinGroupNotification = ({requests}) => {
+const JoinGroupNotification = ({ requests, refetch }) => {
 
-    const [acceptRequest] = useAcceptRequestMutation();
+  const [acceptRequest] = useAcceptRequestMutation();
 
-    const requestAccept = async({requestId,accept})=>{
-        try {
-            const res = await acceptRequest({requestId,accept});
+  const requestAccept = async ({ requestId, accept }) => {
+    try {
+      const res = await acceptRequest({ requestId, accept });
 
-            if(res?.data?.success){
-                console.log('use socket');
-                toast.success(res?.data?.message);
-            }else{
-                toast.error(res?.error?.data?.message);
-                console.log(res)
-            }
-        } catch (error) {
-            toast.error('Something went wrong')
-            console.log(error);
-        }
+      if (res?.data?.success) {
+        console.log('use socket');
+        toast.success(res?.data?.message);
+      } else {
+        toast.error(res?.error?.data?.message);
+        console.log(res)
+      }
+    } catch (error) {
+      toast.error('Something went wrong')
+      console.log(error);
+    } finally {
+      refetch();
     }
+  }
   return (
     <div >
       <div className="space-y-4 w-full">
@@ -144,25 +162,25 @@ const JoinGroupNotification = ({requests}) => {
             className="flex items-center w-96 justify-between  p-3 rounded-md  hover:bg-gray-700"
           >
             <div className="flex items-center space-x-4">
-            <img
-              src={user?.sender?.avatar}
-              alt={user?.sender?.name}
-              className="w-12 h-12 rounded-full object-cover border border-gray-800"
-            />
-            <div className="flex-1">
-              <p className="text-sm font-medium ">{user?.sender?.name}</p>
-              <p className="text-xs text-gray-400">@{user?.receiver?.name}</p>
-            </div>
+              <img
+                src={user?.sender?.avatar}
+                alt={user?.sender?.name}
+                className="w-12 h-12 rounded-full object-cover border border-gray-800"
+              />
+              <div className="flex-1">
+                <p className="text-sm font-medium ">{user?.sender?.name}</p>
+                <p className="text-xs text-gray-400">@{user?.receiver?.name}</p>
+              </div>
             </div>
             <div className="flex space-x-2">
               <button
-                onClick={() => requestAccept({requestId:user?._id,accept:true})}
+                onClick={() => requestAccept({ requestId: user?._id, accept: true })}
                 className="text-sm px-3 py-1 bg-green-500 text-white rounded-md hover:bg-green-600"
               >
                 Accept
               </button>
               <button
-                onClick={() => requestAccept({requestId:user?._id,accept:false})}
+                onClick={() => requestAccept({ requestId: user?._id, accept: false })}
                 className="text-sm px-3 py-1 bg-red-500 text-white rounded-md hover:bg-red-600"
               >
                 Reject

@@ -5,10 +5,11 @@ import ConfirmButton from "./ConfirmButton";
 import CreateGroupDialog from "./CreateGroupDialog";
 import axios from "axios";
 import { config, server } from "../../constants/config";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { logout } from "../../redux/slicer/auth";
 import toast from "react-hot-toast";
 import NotificationDialog from "./Notification";
+import { resetNotification } from "../../redux/slicer/chat";
 
 const MenuDialog = ({refetch}) => {
     const navigate = useNavigate();
@@ -16,7 +17,8 @@ const MenuDialog = ({refetch}) => {
     const [groupDialog, setGroupDialog] = useState(false);
     const [notificationDialog, setNotificationDialog] = useState(false);
 
-    const dispatch = useDispatch(state => state.auth)
+    const dispatch = useDispatch()
+    const {notificationCount} = useSelector(state => state.chat)
 
     const LogoutHandler = () =>{
         axios.get(`${server}/user/logout`,config).then(res => {dispatch(logout())
@@ -24,12 +26,13 @@ const MenuDialog = ({refetch}) => {
         }).catch(err => toast.error(err?.response?.data?.message || 'Something went wrong!'))
     }
     const createGroup = (name,membersData) =>{
+      console.log(name, membersData)
       const members = membersData.map(item => item._id);
       // console.log(members)
         axios.post(`${server}/chat/new`,{name,members},config).then(res => {
-          toast.success(res.data.message);
-          refetch();
-        }).catch(err => toast.error(err?.response?.data?.message || 'Something went wrong!'))
+          // console.log(res)
+          toast.success(res?.data?.message);
+        }).catch(err => {toast.error(err?.response?.data?.message || 'Something went wrong!'); console.log(err)}).finally(() =>{refetch();});
     }
   return (<>
     <Menu as="div" className="relative inline-block text-left">
@@ -116,7 +119,7 @@ const MenuDialog = ({refetch}) => {
             <Menu.Item>
               {({ active }) => (
                 <div
-                  onClick={() => setNotificationDialog(true)}
+                  onClick={() => {setNotificationDialog(true); dispatch(resetNotification());}}
                   className={`cursor-pointer p-2 rounded flex items-center ${
                     active ? "bg-gray-700" : ""
                   }`}
@@ -135,7 +138,8 @@ const MenuDialog = ({refetch}) => {
                       d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0M3.124 7.5A8.969 8.969 0 0 1 5.292 3m13.416 0a8.969 8.969 0 0 1 2.168 4.5"
                     />
                   </svg>
-                  Notifications
+                  <p>Notifications</p>
+                  {notificationCount>0 && <p className="bg-red-500 rounded-full ml-auto px-1.5 text-sm">{notificationCount}</p>}
                 </div>
               )}
             </Menu.Item>

@@ -35,6 +35,7 @@ const ChatWindow = ({ paramId, chater, setShowInfo, showInfo }) => {
 
 useEffect(() => {
   return ()=> {
+    // setChatData({});
     setMessages([]);
   setPage(1); // Reset the page to start fresh
   setTotalPages(1); // Reset total pages
@@ -42,7 +43,7 @@ useEffect(() => {
 }, [paramId]);
 
   useEffect(() => {
-    if (oldMessagesChunk?.data?.message && oldMessagesChunk?.data?.page == page) {
+    if (oldMessagesChunk?.data?.message && oldMessagesChunk?.data?.page*1 === page) {
       // console.log(oldMessagesChunk?.data)
       setTotalPages(oldMessagesChunk?.data?.totalPages);
       const container = scrollRef.current;
@@ -63,7 +64,7 @@ useEffect(() => {
         }
       }, 0);
     }
-  }, [oldMessagesChunk]);
+  }, [oldMessagesChunk,page]);
 
 
 
@@ -227,7 +228,7 @@ const MessageComponent = ({ msg, user }) => (
               small={smallUrl}
               large={url}
               alt="Preview Image"
-              className="inline-block rounded-lg bg-gray-700/50 h-[250px] w-[70vw] object-contain my-0.5"
+              className="inline-block rounded-lg bg-gray-700/50 h-[250px] max-sm:w-[70vw] sm:w-[50%] object-contain my-0.5"
             />
           </div>);
         } else if (['mp3', 'wav', 'webm', 'ogg', 'm4a'].includes(extension)) {
@@ -287,8 +288,7 @@ const TextMessageComponent = ({ chatId, members, socket, setMessages, setBottom 
   const [isRecording, setIsRecording] = useState(false);
   const [mediaBlob, setMediaBlob] = useState(null);
   const [showDialog, setShowDialog] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
-  const [imageSrc, setImageSrc] = useState(null);
+  const [isUploading, setIsUploading] = useState({file:null,loading:false});
 
   const dialogRef = useRef(null);
   const mediaRecorderRef = useRef(null);
@@ -365,7 +365,7 @@ const TextMessageComponent = ({ chatId, members, socket, setMessages, setBottom 
     if (files.length > 5) return toast.error(`Selected ${fileType}s are more than 5!`);
 
     // console.log(`Selected ${fileType}:`, files[0]); // Replace this with your upload logic
-    setIsUploading(true);
+    setIsUploading({file:fileType,loading:true});
     const toastId = toast.loading(`Sending ${fileType}`);
     const fileArray = Array.from(files);
 
@@ -383,16 +383,16 @@ const TextMessageComponent = ({ chatId, members, socket, setMessages, setBottom 
       if (res.data) { toast.success(`${fileType} sent successfully!`, { id: toastId }); } else { toast.error(`${fileType} failed to send!`, { id: toastId }); }
     } catch (error) {
       console.log(error)
-      toast.error(`${fileType, error}`, { id: toastId })
+      toast.error(`${fileType} ${error}`, { id: toastId })
     } finally {
-      setIsUploading(false);
+      setIsUploading({file:null,loading:false});
     }
 
   };
 
   const audioSendHandle = async () => {
 
-    setIsUploading(true);
+    setIsUploading({file:'audio',loading:true});
     const toastId = toast.loading("Sending Audio...");
 
     try {
@@ -419,7 +419,7 @@ const TextMessageComponent = ({ chatId, members, socket, setMessages, setBottom 
       console.error("Error sending audio:", error);
       toast.error(`Audio upload failed: ${error.message}`, { id: toastId });
     } finally {
-      setIsUploading(false);
+      setIsUploading({file:null,loading:false});
       setMediaBlob(null); // Clear the recorded audio
     }
   };
@@ -448,12 +448,13 @@ const TextMessageComponent = ({ chatId, members, socket, setMessages, setBottom 
 
   const newMessageHandler = useCallback((data) => {
     // console.log(data);
+    if(data.chatId !== chatId) return;
     setMessages((prev) => [...prev, data.message])
     // toast.success(data.message.content);
     setTimeout(() => {
       setBottom()
     }, 1);
-  }, []);
+  }, [setBottom,chatId]);
 
   const eventHandlersArr = { [NEW_MESSAGE]: newMessageHandler };
 
