@@ -30,7 +30,7 @@ const Login = () => {
       const {data} = await axios.post(`${server}/user/login`,{username,password},config)
 
       // console.log(data);
-      dispatch(login(data.user._id));
+      dispatch(login(data.user));
 
       toast.success(data.message);
 

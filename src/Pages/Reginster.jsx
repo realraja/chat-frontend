@@ -61,7 +61,7 @@ function Register() {
 
 try {
   const {data} = await axios.post(`${server}/user/register`,formagic,config);
-  dispatch(login(data.user._id));
+  dispatch(login(data.user));
   toast.success(data.message);
 } catch (error) {
   toast.error(error?.response?.data?.message);

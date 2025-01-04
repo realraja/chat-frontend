@@ -7,9 +7,12 @@ import moment from "moment";
 import axios from "axios";
 import { config, server } from "../../constants/config";
 import toast from "react-hot-toast";
-import { useSelector } from "react-redux";
-import { BarLoader, ClipLoader } from "react-spinners";
+import { useDispatch, useSelector } from "react-redux";
+import { BarLoader, ClipLoader, PulseLoader } from "react-spinners";
 import { useAsyncMutation } from "../../hooks/hook";
+import { removeNewMessageAleart } from "../../redux/slicer/chat";
+import { getOrSaveLocalStorage } from "../../lib/features";
+import { NEW_MESSAGE_ALERT } from "../../constants/events";
 
 // const conversations = [
 //   {
@@ -123,14 +126,28 @@ const Sidebar = ({ id }) => {
   const navigate = useNavigate();
 
   const { user } = useSelector((state) => state.auth);
+  const { newMessageAlert, Typing } = useSelector(state => state.chat);
+  const dispatch = useDispatch();
+  // console.log(newMessageAlert)
+  // let msg = newMessageAlert.find((i)=> i.chatId === id);
+  // console.log(msg);
+
 
   // console.log(searchList)
 
   const [searchUser] = useLazySearchUserQuery();
-  const { isLoading, refetch, data,error } = useMyChatsQuery("");
+  const { isLoading, refetch, data, error } = useMyChatsQuery("");
   // const {isLoading,isError,error,refetch,data} = useMyChatsQuery('');
   // console.log(data);
   // console.log(error)
+
+  const handleOnClickChat = (chatId) => {
+    dispatch(removeNewMessageAleart({ chatId }));
+  }
+
+  useEffect(() => {
+    getOrSaveLocalStorage({ key: NEW_MESSAGE_ALERT, value: newMessageAlert, get: false });
+  }, [newMessageAlert]);
 
   useEffect(() => {
     if (searchText.length > 0) {
@@ -162,7 +179,7 @@ const Sidebar = ({ id }) => {
             // onInput={() => setIsSearch(true)}
             // onBlur={()=> searchText || setIsSearch(false)}
             value={searchText}
-            onChange={(e) => { 
+            onChange={(e) => {
               setSearchText(e.target.value);
             }}
             type="search"
@@ -181,17 +198,28 @@ const Sidebar = ({ id }) => {
         ) : <div className="h-full overflow-auto scrollEditclass">
           {!searchText ? (
             <ul>
-              {chatList?.map((conv, index) => (
-                <ChatListComponent
-                  key={index}
-                  avatar={conv?.imgUrl[0]}
-                  name={conv?.name}
-                  _id={conv?._id}
-                  updatedAt={conv?.updatedAt}
-                  navigate={navigate}
-                  user={user}
-                />
-              ))}
+              {chatList?.map((conv, index) => {
+                const msg = newMessageAlert.find((i) => i.chatId === conv?._id);
+                const typing = Typing.find((i) => i.chatId === conv?._id);
+                // console.log(conv);
+
+                return (
+                  <ChatListComponent
+                    handleOnClickChat={handleOnClickChat}
+                    notificationAlertCount={msg?.count || 0}
+                    groupChat={conv?.groupChat}
+                    chatId={id}
+                    key={index}
+                    avatar={conv?.imgUrl[0]}
+                    name={conv?.name}
+                    _id={conv?._id}
+                    updatedAt={conv?.updatedAt}
+                    navigate={navigate}
+                    user={user}
+                    typing={typing || { typing: false }}
+                  />
+                )
+              })}
             </ul>
           ) : searchLoading ? (
             <div className="flex items-center justify-center my-5">
@@ -239,9 +267,10 @@ const Sidebar = ({ id }) => {
 
 export default Sidebar;
 
-const ChatListComponent = ({ avatar, _id, name, updatedAt, navigate, user }) => {
+const ChatListComponent = ({ avatar, _id, name, typing, groupChat, updatedAt, navigate, user, chatId, notificationAlertCount, handleOnClickChat }) => {
+  // console.log(notificationAlertCount)
   return (
-    <li className="mb-4 cursor-pointer hover:bg-gray-700 p-2 rounded flex items-center">
+    <li className={`mb-4 cursor-pointer hover:bg-gray-950 ${_id === chatId && 'bg-gray-950'} p-2 rounded flex items-center`}>
       <ModalImage
         small={avatar}
         large={avatar}
@@ -250,7 +279,7 @@ const ChatListComponent = ({ avatar, _id, name, updatedAt, navigate, user }) => 
       />
       <div
         className="flex justify-between w-full"
-        onClick={() => navigate("/chat/" + _id)}
+        onClick={() => { navigate("/chat/" + _id); handleOnClickChat(_id); }}
       >
         <div>
           <h3 className="text-lg font-semibold">
@@ -263,11 +292,17 @@ const ChatListComponent = ({ avatar, _id, name, updatedAt, navigate, user }) => 
               .join(" ")}
             {_id === user ? '(You)' : null}
           </h3>
-          {/* <p className="text-sm text-gray-400">
-                        {conv.lastMessage}
-                      </p> */}
+          {_id !== chatId &&typing?.typing && <p className="text-sm text-green-400 flex justify-center items-center">
+            {groupChat && `${typing?.name} is`} typing<PulseLoader
+            className="mt-1"
+              color="#43e96b"
+              margin={3}
+              size={3}
+            />
+          </p>}
         </div>
-        <p className="text-xs text-gray-400">{moment(updatedAt).fromNow()}</p>
+        <p className={`text-xs bg-rose-700 rounded-full ${notificationAlertCount <= 99 ? notificationAlertCount <= 9 ? notificationAlertCount <= 0 ? "hidden" : 'px-2.5' : 'px-2' : 'px-1'} text-center flex justify-center items-center`}>{notificationAlertCount}</p>
+        {/* <p className="text-xs text-gray-400">{moment(updatedAt).fromNow()}</p> */}
       </div>
     </li>
   );
@@ -283,7 +318,7 @@ const SearchListGroupComponent = ({
   refetch,
 }) => {
   const [SendJoinRequest, isLoadingRequest, dataRequest] = useAsyncMutation(useSendGroupJoinRequestMutation);
-  console.log(isLoadingRequest,dataRequest)
+  console.log(isLoadingRequest, dataRequest)
   const handleChat = async () => {
     await SendJoinRequest("sending Friend request", { chatId: _id });
     // toast.success("this function is not working!");

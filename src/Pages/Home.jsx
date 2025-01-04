@@ -6,9 +6,9 @@ import { useParams } from 'react-router-dom'
 import UserInfo from '../components/testLayout/UserInfo'
 import Title from '../components/shared/Title'
 import { useGetChatDetailsQuery } from '../redux/api/api'
-import { NEW_MESSAGE_ALERT, NEW_REQUEST } from '../constants/events'
-import { useDispatch } from 'react-redux'
-import { incrementNotification, setNewMessageAleart } from '../redux/slicer/chat'
+import { NEW_MESSAGE_ALERT, NEW_REQUEST, START_OR_STOP_TYPING } from '../constants/events'
+import { useDispatch, useSelector } from 'react-redux'
+import { incrementNotification, setNewMessageAleart, setTyping } from '../redux/slicer/chat'
 import { useSocketEvents } from '../hooks/hook'
 import { GetSoket } from '../socket/socket'
 
@@ -16,6 +16,8 @@ const Home = () => {
   const [userInfoShow, setUserInfoShow] = useState(false);
   const [chatData, setChatData] = useState({});
   const {id} = useParams();
+
+  const { user } = useSelector((state) => state.auth);
   const dispatch = useDispatch()
   // const socket = 
 
@@ -35,8 +37,13 @@ const Home = () => {
     dispatch(setNewMessageAleart(data));
   },[id]);
   const newRequesetHandler = useCallback(() => {dispatch(incrementNotification())},[]);
+    const startOrStopTypingListener = useCallback((data) => {
+      if(user === data.user) return;
+      // console.log(data);
+      dispatch(setTyping(data));
+    }, [user]);
 
-    const eventHandlersArr = { [NEW_MESSAGE_ALERT]: newMessageAlertHandler,[NEW_REQUEST]: newRequesetHandler };
+    const eventHandlersArr = { [NEW_MESSAGE_ALERT]: newMessageAlertHandler,[NEW_REQUEST]: newRequesetHandler, [START_OR_STOP_TYPING]: startOrStopTypingListener  };
   
     useSocketEvents(socket, eventHandlersArr);
 
@@ -53,7 +60,7 @@ const Home = () => {
       {isLoading && <h1 className='text-9xl text-red-400'>loading</h1>}
       
       {id && Object?.keys(chatData || {})?.length !== 0 && !isLoading &&<>
-      <ChatWindow paramId={id} chater={chatData?.chat} setShowInfo={setUserInfoShow} showInfo={userInfoShow} />
+      <ChatWindow paramId={id} user={user} chater={chatData?.chat} setShowInfo={setUserInfoShow} showInfo={userInfoShow} />
 
       <UserInfo id={id} chatData={chatData?.chat} setShowInfo={setUserInfoShow} showInfo={userInfoShow} />
       </>}

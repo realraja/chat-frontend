@@ -2,22 +2,31 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import ModalImage from "react-modal-image";
 import { Link } from "react-router-dom";
 import { GetSoket } from "../../socket/socket";
-import { NEW_MESSAGE } from "../../constants/events";
-import { useSelector } from "react-redux";
+import { NEW_MESSAGE, START_OR_STOP_TYPING } from "../../constants/events";
+import { useDispatch, useSelector } from "react-redux";
 import moment from "moment";
 import toast from "react-hot-toast";
 import { useSocketEvents } from "../../hooks/hook";
 import { useGetMessagesQuery, useSendAttachmentsMutation } from "../../redux/api/api";
+import { setTyping } from "../../redux/slicer/chat";
+import { PulseLoader } from "react-spinners";
 
-const ChatWindow = ({ paramId, chater, setShowInfo, showInfo }) => {
+const ChatWindow = ({ paramId, chater, setShowInfo, showInfo,user }) => {
   const socket = GetSoket();
 
   const [messages, setMessages] = useState([]);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [loadingOldMessages, setLoadingOldMessages] = useState(false);
+  // const [isUserTyping, setIsUserTyping] = useState(false);
 
-  const { user } = useSelector((state) => state.auth);
+  const { Typing } = useSelector((state) => state.chat);
+  const dispatch = useDispatch();
+
+  const typingStatus = Typing.find(i => i.chatId === paramId);
+  const isUserTyping = typingStatus?.typing || false;
+  // console.log(isUserTyping);
+
   const id = chater?._id;
   const members = chater?.members;
   const chaterData = chater?.members.find(
@@ -33,17 +42,17 @@ const ChatWindow = ({ paramId, chater, setShowInfo, showInfo }) => {
   // Append old messages when page changes
   // console.log(totalPages, oldMessagesChunk.data)
 
-useEffect(() => {
-  return ()=> {
-    // setChatData({});
-    setMessages([]);
-  setPage(1); // Reset the page to start fresh
-  setTotalPages(1); // Reset total pages
-  }
-}, [paramId]);
+  useEffect(() => {
+    return () => {
+      // setChatData({});
+      setMessages([]);
+      setPage(1); // Reset the page to start fresh
+      setTotalPages(1); // Reset total pages
+    }
+  }, [paramId]);
 
   useEffect(() => {
-    if (oldMessagesChunk?.data?.message && oldMessagesChunk?.data?.page*1 === page) {
+    if (oldMessagesChunk?.data?.message && oldMessagesChunk?.data?.page * 1 === page) {
       // console.log(oldMessagesChunk?.data)
       setTotalPages(oldMessagesChunk?.data?.totalPages);
       const container = scrollRef.current;
@@ -64,7 +73,7 @@ useEffect(() => {
         }
       }, 0);
     }
-  }, [oldMessagesChunk,page]);
+  }, [oldMessagesChunk, page]);
 
 
 
@@ -117,6 +126,15 @@ useEffect(() => {
     }
   }
 
+  useEffect(() => {
+    if((messages?.pop()?.sender?._id === user)) setBottomFunction();
+  }, [messages]);
+  useEffect(() => {
+    if(scrollRef?.current?.scrollHeight-scrollRef?.current?.scrollTop > 600) return;
+
+  setBottomFunction();
+  }, [Typing]);
+
   return (
     <div
       className={` ${showInfo
@@ -126,7 +144,7 @@ useEffect(() => {
         }`}
     >
       {/* Header */}
-      <div className="p-3 border-b border-gray-700 flex items-center gap-5">
+      <div className="p-3 border-b border-gray-700 min-h-16 flex items-center gap-5">
         <Link
           className={`cursor-pointer max-sm:block sm:block md:hidden`}
           to={"/"}
@@ -150,7 +168,7 @@ useEffect(() => {
           onClick={() => setShowInfo(!showInfo)}
           className="flex w-full justify-between items-center cursor-pointer"
         >
-          <div className="flex">
+          <div className="flex items-center">
             <img
               src={
                 chater?.groupChat ? chater?.imgUrl[0] : chaterData?.avatar
@@ -158,9 +176,17 @@ useEffect(() => {
               alt={"conv.name"}
               className="w-10 h-10 rounded-full mr-4 object-cover"
             />
-            <h2 className="text-2xl font-bold">
+            <div className="flex flex-col">
+            <h2 className="text-2xl text-start font-bold">
               {chater?.groupChat ? chater?.name : chaterData?.name}
             </h2>
+            {scrollRef?.current?.scrollHeight-scrollRef?.current?.scrollTop > 800 && isUserTyping && <p className="text-sm text-green-400 flex items-center">typing<PulseLoader
+                        className="mt-1"
+                          color="#43e96b"
+                          margin={3}
+                          size={3}
+                        /></p>}
+            </div>
           </div>
           <p className="text-sm text-gray-400">last seen 6/23/2024</p>
         </div>
@@ -180,9 +206,15 @@ useEffect(() => {
         {loadingOldMessages && (
           <div className="text-center text-gray-400">Loading...</div>
         )}
-        {messages.map((msg, index) => (
-          <MessageComponent key={index} msg={msg} user={user} />
+        {messages.map((msg) => (
+          <MessageComponent key={msg._id} msg={msg} user={user} />
         ))}
+        {isUserTyping && <PulseLoader
+          color="#a22dd0"
+          margin={4}
+          size={12}
+        />}
+
       </div>
 
       {/* Input Area */}
@@ -192,7 +224,6 @@ useEffect(() => {
           members={members}
           socket={socket}
           setMessages={setMessages}
-          setBottom={setBottomFunction}
         />
       </div>
     </div>
@@ -221,10 +252,10 @@ const MessageComponent = ({ msg, user }) => (
         if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(extension)) {
           // /dpr_auto/h_200
           // console.log(url)
-          const smallUrl = url.replace('upload/',`upload/dpr_auto/h_350/`);
+          const smallUrl = url.replace('upload/', `upload/dpr_auto/h_350/`);
           // For images
           return (<div key={_id} className="min-h-[250px]">
-            <ModalImage              
+            <ModalImage
               small={smallUrl}
               large={url}
               alt="Preview Image"
@@ -234,7 +265,7 @@ const MessageComponent = ({ msg, user }) => (
         } else if (['mp3', 'wav', 'webm', 'ogg', 'm4a'].includes(extension)) {
           // For audio files
           return (<div key={_id} className="max-h-20">
-            <audio  controls className="inline-block h-16 my-2">
+            <audio controls className="inline-block h-16 my-2">
               <source src={url} type={`audio/${extension}`} />
               Your browser does not support the audio element.
             </audio>
@@ -242,7 +273,7 @@ const MessageComponent = ({ msg, user }) => (
         } else if (['mp4', 'ogg'].includes(extension)) {
           // For video files
           return (<div key={_id} className="min-h-[300px]">
-            <video  controls className="inline-block h-[300px] my-2">
+            <video controls className="inline-block h-[300px] my-2">
               <source src={url} type={`video/${extension}`} />
               Your browser does not support the video element.
             </video>
@@ -251,7 +282,7 @@ const MessageComponent = ({ msg, user }) => (
           // For other file types (e.g., PDFs, documents, etc.)
           return (
             <a
-            key={_id}
+              key={_id}
               href={url}
               target="_blank"
               rel="noopener noreferrer"
@@ -281,20 +312,22 @@ const MessageComponent = ({ msg, user }) => (
   </div>
 )
 
-const TextMessageComponent = ({ chatId, members, socket, setMessages, setBottom }) => {
+const TextMessageComponent = ({ chatId, members, socket, setMessages }) => {
 
   const [message, setMessage] = useState("");
   const [recordingTime, setRecordingTime] = useState(0);
   const [isRecording, setIsRecording] = useState(false);
   const [mediaBlob, setMediaBlob] = useState(null);
   const [showDialog, setShowDialog] = useState(false);
-  const [isUploading, setIsUploading] = useState({file:null,loading:false});
+  const [isUploading, setIsUploading] = useState({ file: null, loading: false });
+  const [iAmTyping, setIAmTyping] = useState(false);
 
   const dialogRef = useRef(null);
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
   const intervalIdRef = useRef(null);
   const streamRef = useRef(null);
+  const typingTimeoutRef = useRef(null);
 
   const [sendAttachments] = useSendAttachmentsMutation();
 
@@ -365,7 +398,7 @@ const TextMessageComponent = ({ chatId, members, socket, setMessages, setBottom 
     if (files.length > 5) return toast.error(`Selected ${fileType}s are more than 5!`);
 
     // console.log(`Selected ${fileType}:`, files[0]); // Replace this with your upload logic
-    setIsUploading({file:fileType,loading:true});
+    setIsUploading({ file: fileType, loading: true });
     const toastId = toast.loading(`Sending ${fileType}`);
     const fileArray = Array.from(files);
 
@@ -385,14 +418,14 @@ const TextMessageComponent = ({ chatId, members, socket, setMessages, setBottom 
       console.log(error)
       toast.error(`${fileType} ${error}`, { id: toastId })
     } finally {
-      setIsUploading({file:null,loading:false});
+      setIsUploading({ file: null, loading: false });
     }
 
   };
 
   const audioSendHandle = async () => {
 
-    setIsUploading({file:'audio',loading:true});
+    setIsUploading({ file: 'audio', loading: true });
     const toastId = toast.loading("Sending Audio...");
 
     try {
@@ -419,7 +452,7 @@ const TextMessageComponent = ({ chatId, members, socket, setMessages, setBottom 
       console.error("Error sending audio:", error);
       toast.error(`Audio upload failed: ${error.message}`, { id: toastId });
     } finally {
-      setIsUploading({file:null,loading:false});
+      setIsUploading({ file: null, loading: false });
       setMediaBlob(null); // Clear the recorded audio
     }
   };
@@ -436,10 +469,27 @@ const TextMessageComponent = ({ chatId, members, socket, setMessages, setBottom 
   //   }
   // };
 
+  const handleOnchangeMassage = (e) => {
+    setMessage(e.target.value)
+    if (!iAmTyping) {
+      socket.emit(START_OR_STOP_TYPING, { members, chatId, typing: true })
+      setIAmTyping(true);
+    }
+
+    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+
+    typingTimeoutRef.current = setTimeout(() => {
+      setIAmTyping(false);
+      socket.emit(START_OR_STOP_TYPING, { members, chatId, typing: false })
+    }, 2000);
+  }
+
 
   const submitMessage = (e) => {
     e.preventDefault();
     if (!message.trim()) return;
+    setIAmTyping(false);
+    socket.emit(START_OR_STOP_TYPING, { members, chatId, typing: false })
 
     socket.emit(NEW_MESSAGE, { chatId, members, message })
     // console.log(message);
@@ -447,16 +497,13 @@ const TextMessageComponent = ({ chatId, members, socket, setMessages, setBottom 
   }
 
   const newMessageHandler = useCallback((data) => {
-    // console.log(data);
-    if(data.chatId !== chatId) return;
+    if (data.chatId !== chatId) return;
     setMessages((prev) => [...prev, data.message])
-    // toast.success(data.message.content);
-    setTimeout(() => {
-      setBottom()
-    }, 1);
-  }, [setBottom,chatId]);
+  }, [chatId]);
 
-  const eventHandlersArr = { [NEW_MESSAGE]: newMessageHandler };
+
+
+  const eventHandlersArr = { [NEW_MESSAGE]: newMessageHandler};
 
   useSocketEvents(socket, eventHandlersArr);
 
@@ -506,7 +553,7 @@ const TextMessageComponent = ({ chatId, members, socket, setMessages, setBottom 
         </label>
         <input
           value={message}
-          onChange={(e) => setMessage(e.target.value)}
+          onChange={handleOnchangeMassage}
           type="text"
           placeholder="Message"
           className="flex-grow w-full p-4 pl-14 pr-16 text-lg bg-gray-800 text-white rounded-3xl focus:outline-none"
@@ -623,12 +670,12 @@ const TextMessageComponent = ({ chatId, members, socket, setMessages, setBottom 
               />
             </svg>
           </button>
-          <button
-            type="submit"
-            onClick={() => { audioSendHandle(); }}
-            disabled={!mediaBlob}
-            className="p-2 px-4 bg-purple-600 rounded-full cursor-pointer"
-          >
+            <button
+              type="submit"
+              onClick={() => { audioSendHandle(); }}
+              disabled={!mediaBlob}
+              className="p-2 px-4 bg-purple-600 rounded-full cursor-pointer"
+            >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
