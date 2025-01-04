@@ -8,7 +8,6 @@ import moment from "moment";
 import toast from "react-hot-toast";
 import { useSocketEvents } from "../../hooks/hook";
 import { useGetMessagesQuery, useSendAttachmentsMutation } from "../../redux/api/api";
-import { setTyping } from "../../redux/slicer/chat";
 import { PulseLoader } from "react-spinners";
 
 const ChatWindow = ({ paramId, chater, setShowInfo, showInfo,user }) => {
@@ -127,8 +126,11 @@ const ChatWindow = ({ paramId, chater, setShowInfo, showInfo,user }) => {
   }
 
   useEffect(() => {
-    if((messages?.pop()?.sender?._id === user)) setBottomFunction();
-  }, [messages]);
+    // if(messages?.pop()?.sender?._id === user) setBottomFunction();
+    if (messages?.length > 0 && messages[messages.length - 1]?.sender?._id === user) {
+      setBottomFunction();
+    }
+  }, [messages,user]);
   useEffect(() => {
     if(scrollRef?.current?.scrollHeight-scrollRef?.current?.scrollTop > 600) return;
 

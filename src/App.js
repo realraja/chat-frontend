@@ -24,7 +24,7 @@ const App = () => {
   const dispatch = useDispatch();
 
   useEffect(() => {
-  axios.get(`${server}/user/profile`,config).then(res=> dispatch(login(res.data.user._id))).catch(err => {
+  axios.get(`${server}/user/profile`,config).then(res=> dispatch(login(res.data.user))).catch(err => {
     console.log(err?.response?.data?.message || 'Something went wrong!');
     dispatch(logout())});
   }, [dispatch])
