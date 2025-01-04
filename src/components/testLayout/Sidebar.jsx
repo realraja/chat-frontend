@@ -270,7 +270,7 @@ export default Sidebar;
 const ChatListComponent = ({ avatar, _id, name, typing, groupChat, updatedAt, navigate, user, chatId, notificationAlertCount, handleOnClickChat }) => {
   // console.log(notificationAlertCount)
   return (
-    <li className={`mb-4 cursor-pointer hover:bg-gray-950 ${_id === chatId && 'bg-gray-950'} p-2 rounded flex items-center`}>
+    <li className={`mb-1 min-h-16 cursor-pointer hover:bg-gray-950 ${_id === chatId && 'bg-gray-950'} p-2 rounded flex items-center`}>
       <ModalImage
         small={avatar}
         large={avatar}
@@ -278,10 +278,10 @@ const ChatListComponent = ({ avatar, _id, name, typing, groupChat, updatedAt, na
         className="w-10 h-10 rounded-full mr-4 object-cover"
       />
       <div
-        className="flex justify-between w-full"
+        className="flex justify-between items-center w-full"
         onClick={() => { navigate("/chat/" + _id); handleOnClickChat(_id); }}
       >
-        <div>
+        <div className="flex flex-col">
           <h3 className="text-lg font-semibold">
             {name
               ?.split(" ")
@@ -301,7 +301,7 @@ const ChatListComponent = ({ avatar, _id, name, typing, groupChat, updatedAt, na
             />
           </p>}
         </div>
-        <p className={`text-xs bg-rose-700 rounded-full ${notificationAlertCount <= 99 ? notificationAlertCount <= 9 ? notificationAlertCount <= 0 ? "hidden" : 'px-2.5' : 'px-2' : 'px-1'} text-center flex justify-center items-center`}>{notificationAlertCount}</p>
+        <p className={`text-xs bg-rose-700 rounded-full ${notificationAlertCount <= 99 ? notificationAlertCount <= 9 ? notificationAlertCount <= 0 ? "hidden" : 'px-2.5 py-1.5' : 'px-2 py-1.5' : 'px-1 py-1.5'} text-center flex justify-center items-center`}>{notificationAlertCount}</p>
         {/* <p className="text-xs text-gray-400">{moment(updatedAt).fromNow()}</p> */}
       </div>
     </li>
