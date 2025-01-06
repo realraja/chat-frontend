@@ -17,6 +17,8 @@ const ChatWindow = ({ paramId, chater, setShowInfo, showInfo,user }) => {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [loadingOldMessages, setLoadingOldMessages] = useState(false);
+  const [showScrollButton, setShowScrollButton] = useState(false);
+  const [pendingShowMessages, setPendingShowMessages] = useState(0)
   // const [isUserTyping, setIsUserTyping] = useState(false);
 
   const { Typing } = useSelector((state) => state.chat);
@@ -120,22 +122,69 @@ const ChatWindow = ({ paramId, chater, setShowInfo, showInfo,user }) => {
   //   return () => container?.removeEventListener("scroll", handleScroll);
   // }, []);
   const setBottomFunction = () => {
+    // if (scrollRef.current) {
+    //   scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    // }
     if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+      scrollRef.current.scrollTo({
+        top: scrollRef.current.scrollHeight,
+        behavior: 'smooth',
+      });
     }
   }
 
   useEffect(() => {
+    let date = new Date();
+    let messageDate = new Date(messages[messages.length - 1]?.createdAt);
+    // console.log(messages[messages.length - 1],messageDate.getTime());
+    // console.log((date.getTime()-messageDate.getTime())>500);
     // if(messages?.pop()?.sender?._id === user) setBottomFunction();
-    if (messages?.length > 0 && messages[messages.length - 1]?.sender?._id === user) {
-      setBottomFunction();
+
+    // if (messages?.length > 0 && messages[messages.length - 1]?.sender?._id !== user && showScrollButton) {return};
+    if(messages?.length > 0 && messages[messages.length - 1]?.sender?._id !== user && (date.getTime()-messageDate.getTime())<500){
+      return setPendingShowMessages(prev => prev+1);
     }
+    if ((messages?.length > 0 && messages[messages.length - 1]?.sender?._id !== user && showScrollButton) || (date.getTime()-messageDate.getTime())>500 ) return;
+      setBottomFunction();
   }, [messages,user]);
   useEffect(() => {
     if(scrollRef?.current?.scrollHeight-scrollRef?.current?.scrollTop > 600) return;
 
   setBottomFunction();
   }, [Typing]);
+
+
+  
+  useEffect(() => {
+    const handleScroll = () => {
+      if (scrollRef.current) {
+        const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;
+        const bottomThreshold = 1000; // Distance from the bottom to show the button
+        setShowScrollButton(scrollHeight - scrollTop - clientHeight > bottomThreshold);
+      }
+    };
+
+    const scrollContainer = scrollRef.current;
+    if (scrollContainer) {
+      scrollContainer.addEventListener('scroll', handleScroll);
+    }
+
+    // Cleanup the event listener
+    return () => {
+      if (scrollContainer) {
+        scrollContainer.removeEventListener('scroll', handleScroll);
+      }
+    };
+  }, []);
+
+  // const scrollToBottom = () => {
+  //   if (scrollRef.current) {
+  //     scrollRef.current.scrollTo({
+  //       top: scrollRef.current.scrollHeight,
+  //       behavior: 'smooth',
+  //     });
+  //   }
+  // };
 
   return (
     <div
@@ -196,28 +245,43 @@ const ChatWindow = ({ paramId, chater, setShowInfo, showInfo,user }) => {
 
       {/* Messages Container */}
       <div
-        ref={scrollRef}
-        className="flex-grow p-4 overflow-y-auto scrollEditclass pb-20"
-        style={{
-          background:
-            "url(https://gifdb.com/images/high/black-background-blue-meteor-shower-96b6ypkabnn7d0jm.gif)",
-          backgroundRepeat: "no-repeat",
-          backgroundSize: "cover",
-        }}
-      >
-        {loadingOldMessages && (
-          <div className="text-center text-gray-400">Loading...</div>
-        )}
-        {messages.map((msg) => (
-          <MessageComponent key={msg._id} msg={msg} user={user} />
-        ))}
-        {isUserTyping && <PulseLoader
+      ref={scrollRef}
+      className="flex-grow p-4 overflow-y-auto scrollEditclass pb-20"
+      style={{
+        background: "url(https://gifdb.com/images/high/black-background-blue-meteor-shower-96b6ypkabnn7d0jm.gif)",
+        backgroundRepeat: "no-repeat",
+        backgroundSize: "cover",
+      }}
+    >
+      {loadingOldMessages && (
+        <div className="text-center text-gray-400">Loading...</div>
+      )}
+
+      {showScrollButton && (
+        <div
+          onClick={setBottomFunction}
+          className="bg-gray-600 rounded-full p-2 fixed bottom-24 right-5 z-40 cursor-pointer"
+        >
+{pendingShowMessages>0 && <p className="absolute bg-purple-600 size-7 flex justify-center items-center text-center -left-3 rounded-full -top-3">{pendingShowMessages}</p>}
+<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" className="size-6">
+  <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 5.25 7.5 7.5 7.5-7.5m-15 6 7.5 7.5 7.5-7.5" />
+</svg>
+
+        </div>
+      )}
+
+      {messages.map((msg, index) => (
+        <MessageComponent key={index} msg={msg} user={user} />
+      ))}
+
+      {isUserTyping && (
+        <PulseLoader
           color="#a22dd0"
           margin={4}
           size={12}
-        />}
-
-      </div>
+        />
+      )}
+    </div>
 
       {/* Input Area */}
       <div>
@@ -499,6 +563,7 @@ const TextMessageComponent = ({ chatId, members, socket, setMessages }) => {
   }
 
   const newMessageHandler = useCallback((data) => {
+    // console.log(data);
     if (data.chatId !== chatId) return;
     setMessages((prev) => [...prev, data.message])
   }, [chatId]);
