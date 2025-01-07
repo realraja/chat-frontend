@@ -9,12 +9,14 @@ const chatSlicer = createSlice({
     newMessageAlert: getOrSaveLocalStorage({key:NEW_MESSAGE_ALERT,get:true}) ||[{
         chatId: '',
         count:0,
+        message:'',
     }],
     Typing:[{
         chatId: '',
         name: '',
         typing: false
-    }]
+    }],
+    onlineUsers:{}
   },
   reducers: {
     incrementNotification: (state,action) =>{
@@ -32,13 +34,26 @@ const chatSlicer = createSlice({
 
         if(intex !== -1){
             state.newMessageAlert[intex].count += 1;
+            state.newMessageAlert[intex].message = action.payload.message;
         }else{
-            state.newMessageAlert.push({chatId,count:1});
+            state.newMessageAlert.push({chatId,count:1,message:action.payload.message});
         }
     },
     removeNewMessageAleart: (state,action) =>{
         const chatId = action?.payload?.chatId;
-        state.newMessageAlert = state.newMessageAlert.filter(x => x.chatId !== chatId);
+        const intex = state.newMessageAlert.findIndex((item)=> item.chatId === chatId);
+
+        if(intex !== -1){
+            state.newMessageAlert[intex].count = 0;
+        }
+    },
+    addNewMessageAleart: (state,action) =>{
+        const chatId = action?.payload?.chatId;
+        const intex = state.newMessageAlert.findIndex((item)=> item.chatId === chatId);
+
+        if(intex !== -1){
+            state.newMessageAlert[intex].count += action.payload.count;
+        }
     },
     setTyping: (state,action) =>{
         const chatId = action?.payload?.chatId;
@@ -51,11 +66,14 @@ const chatSlicer = createSlice({
             state.Typing.push({chatId,typing:true,name:action?.payload?.name});
         }
     },
+    setOnlineUsers:(state,action)=>{
+        state.onlineUsers = action.payload;
+    }
   },
   extraReducers(builder){}
 });
 
 
-export const {incrementNotification,resetNotification,setNotification,setNewMessageAleart,removeNewMessageAleart,setTyping} = chatSlicer.actions;
+export const {incrementNotification,resetNotification,setNotification,addNewMessageAleart,setNewMessageAleart,removeNewMessageAleart,setTyping,setOnlineUsers} = chatSlicer.actions;
 
 export default chatSlicer;

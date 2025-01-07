@@ -6,9 +6,9 @@ import { useParams } from 'react-router-dom'
 import UserInfo from '../components/testLayout/UserInfo'
 import Title from '../components/shared/Title'
 import { useGetChatDetailsQuery } from '../redux/api/api'
-import { NEW_MESSAGE_ALERT, NEW_REQUEST, START_OR_STOP_TYPING } from '../constants/events'
+import { NEW_MESSAGE_ALERT, NEW_REQUEST, START_OR_STOP_TYPING, UPDATE_USER_STATUS, USER_CONNECTED } from '../constants/events'
 import { useDispatch, useSelector } from 'react-redux'
-import { incrementNotification, setNewMessageAleart, setTyping } from '../redux/slicer/chat'
+import { incrementNotification, setNewMessageAleart, setOnlineUsers, setTyping } from '../redux/slicer/chat'
 import { useSocketEvents } from '../hooks/hook'
 import { GetSoket } from '../socket/socket'
 
@@ -23,6 +23,20 @@ const Home = () => {
 
   // console.log(!id)
    const socket = GetSoket();
+
+  useEffect(() => {
+    // Notify the server that the user has connected
+    socket?.emit(USER_CONNECTED);
+
+    // Cleanup on unmount
+    return () => {
+      socket.off(UPDATE_USER_STATUS);
+    };
+  }, [socket]);
+
+
+
+
 
    const {data,isLoading} = useGetChatDetailsQuery({chatId: id,populate:true},{skip:!id});
   //  console.log(ChatDetails.data);
@@ -42,8 +56,9 @@ const Home = () => {
       // console.log(data);
       dispatch(setTyping(data));
     }, [user]);
+    const checkOnlineUsersHandler = useCallback((data) =>  dispatch(setOnlineUsers(data.onlineUsers)), []);
 
-    const eventHandlersArr = { [NEW_MESSAGE_ALERT]: newMessageAlertHandler,[NEW_REQUEST]: newRequesetHandler, [START_OR_STOP_TYPING]: startOrStopTypingListener  };
+    const eventHandlersArr = { [NEW_MESSAGE_ALERT]: newMessageAlertHandler,[NEW_REQUEST]: newRequesetHandler, [START_OR_STOP_TYPING]: startOrStopTypingListener,[UPDATE_USER_STATUS]:checkOnlineUsersHandler  };
   
     useSocketEvents(socket, eventHandlersArr);
 

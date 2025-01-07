@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ModalImage from "react-modal-image";
 import MenuDialog from "../Dialogs/MenuDialog";
-import { useLazySearchUserQuery, useMyChatsQuery, useSendGroupJoinRequestMutation } from "../../redux/api/api";
+import { useDeletePendingMessagesMutation, useLazySearchUserQuery, useMyChatsQuery, useSendGroupJoinRequestMutation } from "../../redux/api/api";
 import moment from "moment";
 import axios from "axios";
 import { config, server } from "../../constants/config";
@@ -10,7 +10,7 @@ import toast from "react-hot-toast";
 import { useDispatch, useSelector } from "react-redux";
 import { BarLoader, ClipLoader, PulseLoader } from "react-spinners";
 import { useAsyncMutation } from "../../hooks/hook";
-import { removeNewMessageAleart } from "../../redux/slicer/chat";
+import { removeNewMessageAleart,addNewMessageAleart } from "../../redux/slicer/chat";
 import { getOrSaveLocalStorage } from "../../lib/features";
 import { NEW_MESSAGE_ALERT } from "../../constants/events";
 
@@ -126,7 +126,7 @@ const Sidebar = ({ id }) => {
   const navigate = useNavigate();
 
   const { user } = useSelector((state) => state.auth);
-  const { newMessageAlert, Typing } = useSelector(state => state.chat);
+  const { newMessageAlert, Typing ,onlineUsers} = useSelector(state => state.chat);
   const dispatch = useDispatch();
   // console.log(newMessageAlert)
   // let msg = newMessageAlert.find((i)=> i.chatId === id);
@@ -138,15 +138,31 @@ const Sidebar = ({ id }) => {
   const [searchUser] = useLazySearchUserQuery();
   const { isLoading, refetch, data, error } = useMyChatsQuery("");
   // const {isLoading,isError,error,refetch,data} = useMyChatsQuery('');
-  // console.log(data);
+  // console.log(data ,user);
   // console.log(error)
 
-  const handleOnClickChat = (chatId) => {
-    dispatch(removeNewMessageAleart({ chatId }));
+  
+  const setchatListData = () => {
+    const sortedChats = data?.chat ? [...data?.chat]?.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)):[]
+    setChatList(sortedChats);
   }
+  
+  const [deletePendingMessages] = useDeletePendingMessagesMutation();
+
+  const handleOnClickChat = async (chatId) => {
+    dispatch(removeNewMessageAleart({ chatId }));
+    try {
+      const res = await deletePendingMessages({ chatId }).unwrap();
+      console.log(res);
+    } catch (error) {
+      console.error('Failed to delete pending messages:', error);
+    }
+  };
 
   useEffect(() => {
+    refetch();
     getOrSaveLocalStorage({ key: NEW_MESSAGE_ALERT, value: newMessageAlert, get: false });
+    setchatListData();
   }, [newMessageAlert]);
 
   useEffect(() => {
@@ -163,8 +179,10 @@ const Sidebar = ({ id }) => {
       }, 500);
       return () => clearTimeout(timeOutId);
     }
-    setChatList(data?.chat);
+    setchatListData();
   }, [searchText, searchUser, data, refetch]);
+
+
 
   return (
     <div
@@ -201,12 +219,18 @@ const Sidebar = ({ id }) => {
               {chatList?.map((conv, index) => {
                 const msg = newMessageAlert.find((i) => i.chatId === conv?._id);
                 const typing = Typing.find((i) => i.chatId === conv?._id);
-                // console.log(conv);
+                let otherMember = conv.members.find((m) => m._id !== user);
+                let isOnline = onlineUsers[otherMember?._id];
+                // console.log(isOnline);
+                
 
                 return (
                   <ChatListComponent
+                  pendings={conv?.pendings}
+                  dispatch={dispatch}
                     handleOnClickChat={handleOnClickChat}
                     notificationAlertCount={msg?.count || 0}
+                    notificationAlertMessage={msg?.message || ''}
                     groupChat={conv?.groupChat}
                     chatId={id}
                     key={index}
@@ -217,6 +241,7 @@ const Sidebar = ({ id }) => {
                     navigate={navigate}
                     user={user}
                     typing={typing || { typing: false }}
+                    isOnline={isOnline?true:false}
                   />
                 )
               })}
@@ -253,6 +278,7 @@ const Sidebar = ({ id }) => {
                     isFriend={conv.isFriend}
                     setSearchText={setSearchText}
                     refetch={refetch}
+                    isOnline={conv.isFriend?(onlineUsers[conv.friendId]?true:false):onlineUsers[conv._id]?true:false}
                   />
                 )
               )}
@@ -267,16 +293,28 @@ const Sidebar = ({ id }) => {
 
 export default Sidebar;
 
-const ChatListComponent = ({ avatar, _id, name, typing, groupChat, updatedAt, navigate, user, chatId, notificationAlertCount, handleOnClickChat }) => {
+const ChatListComponent = ({pendings,dispatch, avatar, _id, name, typing, groupChat, updatedAt, navigate, user, chatId, notificationAlertCount,notificationAlertMessage, handleOnClickChat,isOnline }) => {
   // console.log(notificationAlertCount)
+    useEffect(() => {
+      pendings.map((i)=>{
+        if(i.member === user){
+          dispatch(addNewMessageAleart({chatId:_id,count:i.count}))
+        }
+      })
+    }, [dispatch])
   return (
     <li className={`mb-1 min-h-16 cursor-pointer hover:bg-gray-950 ${_id === chatId && 'bg-gray-950'} p-2 rounded flex items-center`}>
+      <div className="flex relative">
       <ModalImage
         small={avatar}
         large={avatar}
         alt="Preview Image"
         className="w-10 h-10 rounded-full mr-4 object-cover"
       />
+      {isOnline && !groupChat && <><span className="size-3 bg-green-400 absolute top-0 right-2 rounded-full" ></span>
+        <span className="size-3 bg-green-400 absolute top-0 right-2 rounded-full animate-ping" ></span></>}
+        
+      </div>
       <div
         className="flex justify-between items-center w-full"
         onClick={() => { navigate("/chat/" + _id); handleOnClickChat(_id); }}
@@ -292,14 +330,15 @@ const ChatListComponent = ({ avatar, _id, name, typing, groupChat, updatedAt, na
               .join(" ")}
             {_id === user ? '(You)' : null}
           </h3>
-          {_id !== chatId &&typing?.typing && <p className="text-sm text-green-400 flex justify-center items-center">
+          {_id !== chatId &&typing?.typing ? <p className="text-sm text-green-400 flex justify-center items-center">
             {groupChat && `${typing?.name} is`} typing<PulseLoader
             className="mt-1"
               color="#43e96b"
               margin={3}
               size={3}
             />
-          </p>}
+          </p>:<p className="text-sm text-gray-400 flex items-center">{notificationAlertMessage}</p>}
+          
         </div>
         <p className={`text-xs bg-rose-700 rounded-full ${notificationAlertCount <= 99 ? notificationAlertCount <= 9 ? notificationAlertCount <= 0 ? "hidden" : 'px-2.5 py-1.5' : 'px-2 py-1.5' : 'px-1 py-1.5'} text-center flex justify-center items-center`}>{notificationAlertCount}</p>
         {/* <p className="text-xs text-gray-400">{moment(updatedAt).fromNow()}</p> */}
@@ -379,7 +418,9 @@ const SearchListUserComponent = ({
   username,
   setSearchText,
   refetch,
+  isOnline
 }) => {
+  // console.log(isOnline)
   const handleChat = async () => {
     console.log(_id)
     try {
@@ -400,12 +441,18 @@ const SearchListUserComponent = ({
 
   return (
     <li className="mb-4 cursor-pointer hover:bg-gray-700 p-2 rounded flex items-center">
+      <div className="relative flex">
       <ModalImage
         small={avatar}
         large={avatar}
         alt="Preview Image"
         className="w-10 h-10 rounded-full mr-4 object-cover"
       />
+
+      {isOnline && <><span className="size-3 bg-green-400 absolute top-0 right-2 rounded-full" ></span>
+        <span className="size-3 bg-green-400 absolute top-0 right-2 rounded-full animate-ping" ></span></>}
+      
+      </div>
       <div className="flex justify-between w-full">
         <div>
           <h3 className="text-lg font-semibold">

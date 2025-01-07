@@ -34,6 +34,28 @@ export const useAsyncMutation = (mutationHook) => {
 
 }
 
+// export const useSocketEvents = (socket, handlers) => {
+//   useEffect(() => {
+//     if (!socket || !socket.connected) {
+//       console.warn("Socket is not connected");
+//       return;
+//     }
+
+//     // Attach event listeners
+//     Object.entries(handlers).forEach(([event, handler]) => {
+//       socket.on(event, handler);
+//     });
+
+//     // Cleanup on unmount or if dependencies change
+//     return () => {
+//       Object.entries(handlers).forEach(([event, handler]) => {
+//         socket.off(event, handler);
+//       });
+//     };
+//   }, [socket, handlers]);
+// };
+
+
 export const useSocketEvents = (socket,handlers) => {
 
   useEffect(()=>{

@@ -10,7 +10,8 @@ import { useSocketEvents } from "../../hooks/hook";
 import { useGetMessagesQuery, useSendAttachmentsMutation } from "../../redux/api/api";
 import { PulseLoader } from "react-spinners";
 
-const ChatWindow = ({ paramId, chater, setShowInfo, showInfo,user }) => {
+//==> create group 5:37
+const ChatWindow = ({ paramId, chater, setShowInfo, showInfo, user }) => {
   const socket = GetSoket();
 
   const [messages, setMessages] = useState([]);
@@ -21,7 +22,7 @@ const ChatWindow = ({ paramId, chater, setShowInfo, showInfo,user }) => {
   const [pendingShowMessages, setPendingShowMessages] = useState(0)
   // const [isUserTyping, setIsUserTyping] = useState(false);
 
-  const { Typing } = useSelector((state) => state.chat);
+  const { Typing, onlineUsers } = useSelector((state) => state.chat);
   const dispatch = useDispatch();
 
   const typingStatus = Typing.find(i => i.chatId === paramId);
@@ -30,10 +31,12 @@ const ChatWindow = ({ paramId, chater, setShowInfo, showInfo,user }) => {
 
   const id = chater?._id;
   const members = chater?.members;
+  const OtherMember = chater?.members.find(i => i._id !== user);
   const chaterData = chater?.members.find(
     (i) => i?._id?.toString() !== user
   );
 
+  // console.log(chater)
   const oldMessagesChunk = useGetMessagesQuery({ chatId: paramId, page });
   const scrollRef = useRef(null); // Ref for the messages container
   // console.log(totalPages)
@@ -74,7 +77,7 @@ const ChatWindow = ({ paramId, chater, setShowInfo, showInfo,user }) => {
         }
       }, 0);
     }
-  }, [oldMessagesChunk, page]);
+  }, [oldMessagesChunk.data, page]);
 
 
 
@@ -141,20 +144,21 @@ const ChatWindow = ({ paramId, chater, setShowInfo, showInfo,user }) => {
     // if(messages?.pop()?.sender?._id === user) setBottomFunction();
 
     // if (messages?.length > 0 && messages[messages.length - 1]?.sender?._id !== user && showScrollButton) {return};
-    if(messages?.length > 0 && messages[messages.length - 1]?.sender?._id !== user && (date.getTime()-messageDate.getTime())<500){
-      return setPendingShowMessages(prev => prev+1);
+    if (messages?.length > 0 && messages[messages.length - 1]?.sender?._id !== user && (date.getTime() - messageDate.getTime()) < 500) {
+      return setPendingShowMessages(prev => prev + 1);
     }
-    if ((messages?.length > 0 && messages[messages.length - 1]?.sender?._id !== user && showScrollButton) || (date.getTime()-messageDate.getTime())>500 ) return;
-      setBottomFunction();
-  }, [messages,user]);
+    if ((messages?.length > 0 && messages[messages.length - 1]?.sender?._id !== user && showScrollButton) || (date.getTime() - messageDate.getTime()) > 500) return;
+    setBottomFunction();
+  }, [messages, user]);
   useEffect(() => {
-    if(scrollRef?.current?.scrollHeight-scrollRef?.current?.scrollTop > 600) return;
+    if (showScrollButton) return;
+    // if (scrollRef?.current?.scrollHeight - scrollRef?.current?.scrollTop > 600) return;
 
-  setBottomFunction();
+    setBottomFunction();
   }, [Typing]);
 
 
-  
+
   useEffect(() => {
     const handleScroll = () => {
       if (scrollRef.current) {
@@ -228,60 +232,59 @@ const ChatWindow = ({ paramId, chater, setShowInfo, showInfo,user }) => {
               className="w-10 h-10 rounded-full mr-4 object-cover"
             />
             <div className="flex flex-col">
-            <h2 className="text-2xl text-start font-bold">
-              {chater?.groupChat ? chater?.name : chaterData?.name}
-            </h2>
-            {scrollRef?.current?.scrollHeight-scrollRef?.current?.scrollTop > 800 && isUserTyping && <p className="text-sm text-green-400 flex items-center">typing<PulseLoader
-                        className="mt-1"
-                          color="#43e96b"
-                          margin={3}
-                          size={3}
-                        /></p>}
+              <h2 className="text-2xl text-start font-bold">
+                {chater?.groupChat ? chater?.name : chaterData?.name}
+              </h2>
+              { isUserTyping && showScrollButton ||chater?. groupChat ? isUserTyping &&<p className="text-sm text-green-400 flex items-center">{chater?.groupChat && `${typingStatus?.name} is `}typing<PulseLoader
+                className="mt-1"
+                color="#43e96b"
+                margin={3}
+                size={3}
+              /></p>: onlineUsers[OtherMember._id] ? <p className="text-sm text-green-400 items-center">online</p> : <p>last seen {moment(OtherMember.lastSeen).fromNow()}</p>}
             </div>
           </div>
-          <p className="text-sm text-gray-400">last seen 6/23/2024</p>
         </div>
       </div>
 
       {/* Messages Container */}
       <div
-      ref={scrollRef}
-      className="flex-grow p-4 overflow-y-auto scrollEditclass pb-20"
-      style={{
-        background: "url(https://gifdb.com/images/high/black-background-blue-meteor-shower-96b6ypkabnn7d0jm.gif)",
-        backgroundRepeat: "no-repeat",
-        backgroundSize: "cover",
-      }}
-    >
-      {loadingOldMessages && (
-        <div className="text-center text-gray-400">Loading...</div>
-      )}
+        ref={scrollRef}
+        className="flex-grow p-4 overflow-y-auto scrollEditclass pb-20"
+        style={{
+          background: "url(https://gifdb.com/images/high/black-background-blue-meteor-shower-96b6ypkabnn7d0jm.gif)",
+          backgroundRepeat: "no-repeat",
+          backgroundSize: "cover",
+        }}
+      >
+        {loadingOldMessages && (
+          <div className="text-center text-gray-400">Loading...</div>
+        )}
 
-      {showScrollButton && (
-        <div
-          onClick={setBottomFunction}
-          className="bg-gray-600 rounded-full p-2 fixed bottom-24 right-5 z-40 cursor-pointer"
-        >
-{pendingShowMessages>0 && <p className="absolute bg-purple-600 size-7 flex justify-center items-center text-center -left-3 rounded-full -top-3">{pendingShowMessages}</p>}
-<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" className="size-6">
-  <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 5.25 7.5 7.5 7.5-7.5m-15 6 7.5 7.5 7.5-7.5" />
-</svg>
+        {showScrollButton && (
+          <div
+            onClick={setBottomFunction}
+            className="bg-gray-600 rounded-full p-2 fixed bottom-24 right-5 z-40 cursor-pointer"
+          >
+            {pendingShowMessages > 0 && <p className="absolute bg-purple-600 size-7 flex justify-center items-center text-center -left-3 rounded-full -top-3">{pendingShowMessages}</p>}
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-6">
+              <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 5.25 7.5 7.5 7.5-7.5m-15 6 7.5 7.5 7.5-7.5" />
+            </svg>
 
-        </div>
-      )}
+          </div>
+        )}
 
-      {messages.map((msg, index) => (
-        <MessageComponent key={index} msg={msg} user={user} />
-      ))}
+        {messages.map((msg, index) => (
+          <MessageComponent key={index} msg={msg} user={user} />
+        ))}
 
-      {isUserTyping && (
-        <PulseLoader
-          color="#a22dd0"
-          margin={4}
-          size={12}
-        />
-      )}
-    </div>
+        {isUserTyping && (
+          <PulseLoader
+            color="#a22dd0"
+            margin={4}
+            size={12}
+          />
+        )}
+      </div>
 
       {/* Input Area */}
       <div>
@@ -570,7 +573,7 @@ const TextMessageComponent = ({ chatId, members, socket, setMessages }) => {
 
 
 
-  const eventHandlersArr = { [NEW_MESSAGE]: newMessageHandler};
+  const eventHandlersArr = { [NEW_MESSAGE]: newMessageHandler };
 
   useSocketEvents(socket, eventHandlersArr);
 

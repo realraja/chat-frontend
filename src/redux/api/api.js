@@ -78,6 +78,14 @@ const api = createApi({
           body: data
         }),
       }),
+      deletePendingMessages: builder.mutation({
+        query: ({chatId}) => ({
+          url: `/chat/delete-pending/${chatId}`,
+          method: "DELETE",
+          credentials: "include"
+        }),
+        invalidatesTags: ["Chat"],
+      }),
 
 
   }),
@@ -92,5 +100,6 @@ export const {
   useGetChatDetailsQuery,
   useGetMessagesQuery,
   useSendAttachmentsMutation,
+  useDeletePendingMessagesMutation
 } = api;
 export default api;

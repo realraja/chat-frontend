@@ -11,3 +11,8 @@ export const NEW_REQUEST = 'NEW_REQUEST';
 export const NEW_MESSAGE = 'NEW_MESSAGE';
 
 export const START_OR_STOP_TYPING = 'START_OR_STOP_TYPING';
+
+
+
+export const USER_CONNECTED = 'USER_CONNECTED';
+export const UPDATE_USER_STATUS = 'UPDATE_USER_STATUS';
