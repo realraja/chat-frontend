@@ -291,7 +291,7 @@ const ChatListComponent = ({pendings,dispatch, avatar, _id, name, typing, groupC
   // console.log(notificationAlertCount)
   const [deletePendingMessages] = useDeletePendingMessagesMutation();
     useEffect(() => {
-      pendings.map(async(i)=>{
+      const PendingMessagesMap = pendings.map(async(i)=>{
         if(i.member === user){
           dispatch(addNewMessageAleart({chatId:_id,count:i.count}))
           
@@ -303,6 +303,8 @@ const ChatListComponent = ({pendings,dispatch, avatar, _id, name, typing, groupC
     }
         }
       })
+
+      Promise.all(PendingMessagesMap);
     }, [dispatch])
   return (
     <li className={`mb-1 min-h-16 cursor-pointer hover:bg-gray-950 ${_id === chatId && 'bg-gray-950'} p-2 rounded flex items-center`}>
