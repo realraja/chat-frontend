@@ -147,16 +147,10 @@ const Sidebar = ({ id }) => {
     setChatList(sortedChats);
   }
   
-  const [deletePendingMessages] = useDeletePendingMessagesMutation();
+  
 
   const handleOnClickChat = async (chatId) => {
     dispatch(removeNewMessageAleart({ chatId }));
-    try {
-      const res = await deletePendingMessages({ chatId }).unwrap();
-      console.log(res);
-    } catch (error) {
-      console.error('Failed to delete pending messages:', error);
-    }
   };
 
   useEffect(() => {
@@ -295,10 +289,18 @@ export default Sidebar;
 
 const ChatListComponent = ({pendings,dispatch, avatar, _id, name, typing, groupChat, updatedAt, navigate, user, chatId, notificationAlertCount,notificationAlertMessage, handleOnClickChat,isOnline }) => {
   // console.log(notificationAlertCount)
+  const [deletePendingMessages] = useDeletePendingMessagesMutation();
     useEffect(() => {
-      pendings.map((i)=>{
+      pendings.map(async(i)=>{
         if(i.member === user){
           dispatch(addNewMessageAleart({chatId:_id,count:i.count}))
+          
+    try {
+      const res = await deletePendingMessages({ chatId:_id }).unwrap();
+      // console.log(res);
+    } catch (error) {
+      console.error('Failed to delete pending messages:', error);
+    }
         }
       })
     }, [dispatch])
