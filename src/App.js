@@ -20,7 +20,7 @@ const Profile = lazy(() => import("./Pages/Profile"));
 
 const App = () => {
 
-  const {user} = useSelector(state => state.auth);
+  const {user,loading} = useSelector(state => state.auth);
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -28,7 +28,7 @@ const App = () => {
     console.log(err?.response?.data?.message || 'Something went wrong!');
     dispatch(logout())});
   }, [dispatch])
-  return (
+  return loading? <MainLoader />: (
     <BrowserRouter>
     <Suspense fallback={<MainLoader />}>
       <Routes>

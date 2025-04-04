@@ -126,7 +126,7 @@ const Sidebar = ({ id }) => {
   const navigate = useNavigate();
 
   const { user } = useSelector((state) => state.auth);
-  const { newMessageAlert, Typing ,onlineUsers} = useSelector(state => state.chat);
+  const { newMessageAlert, Typing ,onlineUsers,sidebarRefetchCount} = useSelector(state => state.chat);
   const dispatch = useDispatch();
   // console.log(newMessageAlert)
   // let msg = newMessageAlert.find((i)=> i.chatId === id);
@@ -155,6 +155,9 @@ const Sidebar = ({ id }) => {
 
   useEffect(() => {
     refetch();
+    console.log(sidebarRefetchCount)
+  }, [sidebarRefetchCount]);
+  useEffect(() => {
     getOrSaveLocalStorage({ key: NEW_MESSAGE_ALERT, value: newMessageAlert, get: false });
     setchatListData();
   }, [newMessageAlert]);

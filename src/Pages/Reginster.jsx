@@ -8,6 +8,7 @@ import axios from "axios";
 import { config, server } from "../constants/config";
 import { useDispatch } from "react-redux";
 import { login } from "../redux/slicer/auth";
+import { BeatLoader } from "react-spinners";
 
 function Register() {
   const [photo, setPhoto] = useState(
@@ -161,9 +162,10 @@ try {
             <button
               type="submit"
               id="signup-button"
-              className="w-full p-2 rounded bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:ring-opacity-50"
+              disabled={loading || !formData.username || !formData.password || !formData.name}
+              className="w-full p-2 rounded bg-purple-600 disabled:bg-purple-900 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:ring-opacity-50"
             >
-              {loading ? "Loading..." : "SIGN UP"}
+              {loading ? <BeatLoader /> : "SIGN UP"}
             </button>
           </form>
           <div className="text-center mt-4">

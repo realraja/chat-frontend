@@ -8,7 +8,7 @@ import Title from '../components/shared/Title'
 import { useGetChatDetailsQuery } from '../redux/api/api'
 import { NEW_MESSAGE_ALERT, NEW_REQUEST, START_OR_STOP_TYPING, UPDATE_USER_STATUS, USER_CONNECTED } from '../constants/events'
 import { useDispatch, useSelector } from 'react-redux'
-import { incrementNotification, setNewMessageAleart, setOnlineUsers, setTyping } from '../redux/slicer/chat'
+import { incrementNotification, setNewMessageAleart, setNewMessageAleartSidebarRefetch, setOnlineUsers, setTyping } from '../redux/slicer/chat'
 import { useSocketEvents } from '../hooks/hook'
 import { GetSoket } from '../socket/socket'
 
@@ -47,6 +47,7 @@ const Home = () => {
 
 
   const newMessageAlertHandler = useCallback((data) => {
+    dispatch(setNewMessageAleartSidebarRefetch(data));
     if(data?.chatId === id) return;
     dispatch(setNewMessageAleart(data));
   },[id]);

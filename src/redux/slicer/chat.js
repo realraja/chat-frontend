@@ -11,6 +11,7 @@ const chatSlicer = createSlice({
         count:0,
         message:'',
     }],
+    sidebarRefetchCount:0,
     Typing:[{
         chatId: '',
         name: '',
@@ -38,6 +39,9 @@ const chatSlicer = createSlice({
         }else{
             state.newMessageAlert.push({chatId,count:1,message:action.payload.message});
         }
+    },
+    setNewMessageAleartSidebarRefetch: (state,action) =>{
+        state.sidebarRefetchCount += 1;
     },
     removeNewMessageAleart: (state,action) =>{
         const chatId = action?.payload?.chatId;
@@ -74,6 +78,6 @@ const chatSlicer = createSlice({
 });
 
 
-export const {incrementNotification,resetNotification,setNotification,addNewMessageAleart,setNewMessageAleart,removeNewMessageAleart,setTyping,setOnlineUsers} = chatSlicer.actions;
+export const {incrementNotification,resetNotification,setNotification,addNewMessageAleart,setNewMessageAleartSidebarRefetch,setNewMessageAleart,removeNewMessageAleart,setTyping,setOnlineUsers} = chatSlicer.actions;
 
 export default chatSlicer;

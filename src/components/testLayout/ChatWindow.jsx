@@ -134,6 +134,7 @@ const ChatWindow = ({ paramId, chater, setShowInfo, showInfo, user }) => {
         behavior: 'smooth',
       });
     }
+    setPendingShowMessages(0)
   }
 
   useEffect(() => {
@@ -144,10 +145,26 @@ const ChatWindow = ({ paramId, chater, setShowInfo, showInfo, user }) => {
     // if(messages?.pop()?.sender?._id === user) setBottomFunction();
 
     // if (messages?.length > 0 && messages[messages.length - 1]?.sender?._id !== user && showScrollButton) {return};
-    if (messages?.length > 0 && messages[messages.length - 1]?.sender?._id !== user && (date.getTime() - messageDate.getTime()) < 500) {
-      return setPendingShowMessages(prev => prev + 1);
+    // if (messages?.length > 0 && messages[messages.length - 1]?.sender?._id !== user && (date.getTime() - messageDate.getTime()) < 500) {
+    //   console.log('runiing 1')
+
+    // }
+    // if (messages?.length > 0 && messages[messages.length - 1]?.sender?._id !== user && showScrollButton) {
+    //   console.log('runiing 2')
+      
+    //   return setPendingShowMessages(prev => prev + 1);
+    // };
+      // console.log((date.getTime() - messageDate.getTime()) )
+      // console.log((date.getTime() - messageDate.getTime())< 6000 )
+
+    if( showScrollButton){
+      console.log('object sender')
+      if(messages[messages.length - 1]?.sender?._id !== user && (date.getTime() - messageDate.getTime()) < 6000){
+        return setPendingShowMessages(prev => prev + 1);
+      }else if (messages[messages.length - 1]?.sender?._id === user && (date.getTime() - messageDate.getTime()) > 6000) {
+        return
+      } 
     }
-    if ((messages?.length > 0 && messages[messages.length - 1]?.sender?._id !== user && showScrollButton) || (date.getTime() - messageDate.getTime()) > 500) return;
     setBottomFunction();
   }, [messages, user]);
   useEffect(() => {
@@ -163,7 +180,7 @@ const ChatWindow = ({ paramId, chater, setShowInfo, showInfo, user }) => {
     const handleScroll = () => {
       if (scrollRef.current) {
         const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;
-        const bottomThreshold = 1000; // Distance from the bottom to show the button
+        const bottomThreshold = 600; // Distance from the bottom to show the button
         setShowScrollButton(scrollHeight - scrollTop - clientHeight > bottomThreshold);
       }
     };

@@ -10,12 +10,13 @@ import { config, server } from "../constants/config";
 import { useDispatch } from "react-redux";
 import { login } from "../redux/slicer/auth";
 import toast from "react-hot-toast";
+import { BeatLoader } from "react-spinners";
 
 const Login = () => {
   const navigate = useNavigate();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-
+  const [isLoading, setIsLoading] = useState(false);
   const dispatch = useDispatch();
 
 
@@ -23,6 +24,7 @@ const Login = () => {
 
   const handleLogin = async (e)=>{
     e.preventDefault();
+    setIsLoading(true);
 
     
 
@@ -38,6 +40,8 @@ const Login = () => {
       console.log(error);
       // console.log(error,error?.response?.data?.message || 'Something went wrong!');
       toast.error(error?.response?.data?.message || 'Something went wrong!');
+    }finally{
+      setIsLoading(false);
     }
 
   }
@@ -78,10 +82,11 @@ const Login = () => {
             />
           </div>
           <button
-            className="w-full py-2 bg-purple-600 hover:bg-purple-700 text-white rounded transition"
+            className="w-full py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-purple-900 text-white rounded transition"
             type="submit"
+            disabled={isLoading || !username || !password}
           >
-            Login
+            {isLoading?<BeatLoader /> :'Login'}
           </button>
           <div className="text-center mt-4">
             <p>OR</p>
