@@ -63,12 +63,12 @@ const MenuDialog = ({refetch}) => {
         leaveFrom="transform opacity-100 scale-100"
         leaveTo="transform opacity-0 scale-95"
       >
-        <Menu.Items className="absolute left-0 mt-2 w-64 bg-purple-950 bg-opacity-85 text-white rounded-lg shadow-lg">
-          <div className="p-4">
+        <Menu.Items className="absolute left-0 mt-2 w-64 z-50 bg-purple-950 bg-opacity-85 text-white rounded-lg shadow-lg">
+          <div className="p-4 z-50">
             <Menu.Item>
               {({ active }) => (
                 <div
-                  className={`cursor-pointer p-2 rounded flex items-center ${
+                  className={`cursor-pointer p-2 z-50 rounded flex items-center ${
                     active ? "bg-gray-700" : ""
                   }`}
                 >

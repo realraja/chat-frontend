@@ -311,7 +311,7 @@ const ChatListComponent = ({pendings,dispatch, avatar, _id, name, typing, groupC
     }, [dispatch])
   return (
     <li className={`mb-1 min-h-16 cursor-pointer hover:bg-gray-950 ${_id === chatId && 'bg-gray-950'} p-2 rounded flex items-center`}>
-      <div className="flex relative">
+      <div className="flex relative z-0">
       <ModalImage
         small={avatar}
         large={avatar}
@@ -479,7 +479,7 @@ const SearchListUserComponent = ({
             onClick={handleChat}
             className="bg-green-500 rounded-lg px-4 py-1"
           >
-            Chat
+            Add friend
           </button>
         ) : (
           <button
