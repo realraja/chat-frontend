@@ -7,7 +7,7 @@ const Loader = () => {
   useEffect(() => {
     const timer = setTimeout(() => {
       setShowPopup(true); // Close popup after the server starts
-    }, 900);
+    }, 2500);
 
     return () => clearTimeout(timer);
   }, []);
