@@ -11,6 +11,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { incrementNotification, setNewMessageAleart, setNewMessageAleartSidebarRefetch, setOnlineUsers, setTyping } from '../redux/slicer/chat'
 import { useSocketEvents } from '../hooks/hook'
 import { GetSoket } from '../socket/socket'
+import { RiseLoader } from 'react-spinners'
 
 const Home = () => {
   const [userInfoShow, setUserInfoShow] = useState(false);
@@ -73,7 +74,7 @@ const Home = () => {
   <div className="flex h-[calc(100dvh)]">
       <Sidebar id={id} />
 
-      {isLoading && <h1 className='text-9xl text-red-400'>loading</h1>}
+      {isLoading && <div className='flex justify-center items-start h-[calc(100dvh)] w-full'><div className='my-auto'><RiseLoader size={25} margin={10} color="#881ec7" speedMultiplier={1.5} /></div></div>}
       
       {id && Object?.keys(chatData || {})?.length !== 0 && !isLoading &&<>
       <ChatWindow paramId={id} user={user} chater={chatData?.chat} setShowInfo={setUserInfoShow} showInfo={userInfoShow} />

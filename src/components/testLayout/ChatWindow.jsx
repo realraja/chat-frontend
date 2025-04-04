@@ -8,7 +8,8 @@ import moment from "moment";
 import toast from "react-hot-toast";
 import { useSocketEvents } from "../../hooks/hook";
 import { useGetMessagesQuery, useSendAttachmentsMutation } from "../../redux/api/api";
-import { PulseLoader } from "react-spinners";
+import { PulseLoader, ScaleLoader } from "react-spinners";
+import ChatsLoader from "../loaders/ChatsLoader";
 
 //==> create group 5:37
 const ChatWindow = ({ paramId, chater, setShowInfo, showInfo, user }) => {
@@ -140,22 +141,6 @@ const ChatWindow = ({ paramId, chater, setShowInfo, showInfo, user }) => {
   useEffect(() => {
     let date = new Date();
     let messageDate = new Date(messages[messages.length - 1]?.createdAt);
-    // console.log(messages[messages.length - 1],messageDate.getTime());
-    // console.log((date.getTime()-messageDate.getTime())>500);
-    // if(messages?.pop()?.sender?._id === user) setBottomFunction();
-
-    // if (messages?.length > 0 && messages[messages.length - 1]?.sender?._id !== user && showScrollButton) {return};
-    // if (messages?.length > 0 && messages[messages.length - 1]?.sender?._id !== user && (date.getTime() - messageDate.getTime()) < 500) {
-    //   console.log('runiing 1')
-
-    // }
-    // if (messages?.length > 0 && messages[messages.length - 1]?.sender?._id !== user && showScrollButton) {
-    //   console.log('runiing 2')
-
-    //   return setPendingShowMessages(prev => prev + 1);
-    // };
-    // console.log((date.getTime() - messageDate.getTime()) )
-    // console.log((date.getTime() - messageDate.getTime())< 6000 )
 
     if (showScrollButton) {
       console.log('object sender')
@@ -207,7 +192,7 @@ const ChatWindow = ({ paramId, chater, setShowInfo, showInfo, user }) => {
   //   }
   // };
 
-  return (
+  return oldMessagesChunk?.isLoading ? <ChatsLoader /> :(
     <div
       className={` ${showInfo
         ? "max-sm:hidden sm:hidden md:flex md:w-1/2"
@@ -274,7 +259,14 @@ const ChatWindow = ({ paramId, chater, setShowInfo, showInfo, user }) => {
         }}
       >
         {loadingOldMessages && (
-          <div className="text-center text-gray-400">Loading...</div>
+          <div className="text-center text-gray-400"><ScaleLoader
+          color="#ffffff"
+          height={25}
+          margin={2}
+          radius={1}
+          speedMultiplier={3}
+          width={2}
+        /></div>
         )}
 
         {showScrollButton && (
