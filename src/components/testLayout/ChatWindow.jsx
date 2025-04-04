@@ -151,19 +151,19 @@ const ChatWindow = ({ paramId, chater, setShowInfo, showInfo, user }) => {
     // }
     // if (messages?.length > 0 && messages[messages.length - 1]?.sender?._id !== user && showScrollButton) {
     //   console.log('runiing 2')
-      
+
     //   return setPendingShowMessages(prev => prev + 1);
     // };
-      // console.log((date.getTime() - messageDate.getTime()) )
-      // console.log((date.getTime() - messageDate.getTime())< 6000 )
+    // console.log((date.getTime() - messageDate.getTime()) )
+    // console.log((date.getTime() - messageDate.getTime())< 6000 )
 
-    if( showScrollButton){
+    if (showScrollButton) {
       console.log('object sender')
-      if(messages[messages.length - 1]?.sender?._id !== user && (date.getTime() - messageDate.getTime()) < 6000){
+      if (messages[messages.length - 1]?.sender?._id !== user && (date.getTime() - messageDate.getTime()) < 6000) {
         return setPendingShowMessages(prev => prev + 1);
-      }else if (messages[messages.length - 1]?.sender?._id === user && (date.getTime() - messageDate.getTime()) > 6000) {
+      } else if ((date.getTime() - messageDate.getTime()) > 6000) {
         return
-      } 
+      }
     }
     setBottomFunction();
   }, [messages, user]);
@@ -252,12 +252,12 @@ const ChatWindow = ({ paramId, chater, setShowInfo, showInfo, user }) => {
               <h2 className="text-2xl text-start font-bold">
                 {chater?.groupChat ? chater?.name : chaterData?.name}
               </h2>
-              { isUserTyping && showScrollButton ||chater?. groupChat ? isUserTyping &&<p className="text-sm text-green-400 flex items-center">{chater?.groupChat && `${typingStatus?.name} is `}typing<PulseLoader
+              {isUserTyping && showScrollButton || chater?.groupChat ? isUserTyping && <p className="text-sm text-green-400 flex items-center">{chater?.groupChat && `${typingStatus?.name} is `}typing<PulseLoader
                 className="mt-1"
                 color="#43e96b"
                 margin={3}
                 size={3}
-              /></p>: onlineUsers[OtherMember._id] ? <p className="text-sm text-green-400 items-center">online</p> : <p>last seen {moment(OtherMember.lastSeen).fromNow()}</p>}
+              /></p> : onlineUsers[OtherMember._id] ? <p className="text-sm text-green-400 items-center">online</p> : <p>last seen {moment(OtherMember.lastSeen).fromNow()}</p>}
             </div>
           </div>
         </div>
