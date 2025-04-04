@@ -310,21 +310,16 @@ const ChatListComponent = ({pendings,dispatch, avatar, _id, name, typing, groupC
       Promise.all(PendingMessagesMap);
     }, [dispatch])
   return (
-    <li className={`mb-1 min-h-16 cursor-pointer hover:bg-gray-950 ${_id === chatId && 'bg-gray-950'} p-2 rounded flex items-center`}>
+    <li className={`mb-1 min-h-16 cursor-pointer hover:bg-gray-950 ${_id === chatId && 'bg-gray-950'} p-2 rounded flex items-center`} 
+    onClick={() => { navigate("/chat/" + _id); handleOnClickChat(_id); }}>
       <div className="flex relative z-0">
-      <ModalImage
-        small={avatar}
-        large={avatar}
-        alt="Preview Image"
-        className="w-10 h-10 rounded-full mr-4 object-cover"
-      />
+      <img src={avatar} alt="avatar" className="w-10 h-10 rounded-full mr-4 object-cover" />
       {isOnline && !groupChat && <><span className="size-3 bg-green-400 absolute top-0 right-2 rounded-full" ></span>
         <span className="size-3 bg-green-400 absolute top-0 right-2 rounded-full animate-ping" ></span></>}
         
       </div>
       <div
         className="flex justify-between items-center w-full"
-        onClick={() => { navigate("/chat/" + _id); handleOnClickChat(_id); }}
       >
         <div className="flex flex-col">
           <h3 className="text-lg font-semibold">
