@@ -17,13 +17,23 @@ const Loader = () => {
       {showPopup && <Popup onClose={() => setShowPopup(false)} />}
       <div className="space-y-4">
         {[...Array(10)].map((_, rowIndex) => (
-          <div key={rowIndex} className="flex space-x-4">
+          <div>
+            <div key={rowIndex} className="flex space-x-4 max-sm:hidden sm:hidden md:flex">
             {[...Array(3)].map((_, colIndex) => (
               <div
                 key={colIndex}
-                className="w-[28vw] h-[8vh] bg-gray-800 rounded animate-pulse"
+                className="w-[30vw] h-[8vh] bg-gray-800 rounded animate-pulse"
               ></div>
             ))}
+          </div>
+          <div key={rowIndex} className="flex space-x-4 max-sm:flex md:hidden">
+            {[...Array(1)].map((_, colIndex) => (
+              <div
+                key={colIndex}
+                className="w-[90vw] h-[8vh] bg-gray-800 rounded animate-pulse"
+              ></div>
+            ))}
+          </div>
           </div>
         ))}
       </div>
