@@ -192,7 +192,7 @@ const ChatWindow = ({ paramId, chater, setShowInfo, showInfo, user }) => {
   //   }
   // };
 
-  return oldMessagesChunk?.isLoading ? <ChatsLoader /> :(
+  return (
     <div
       className={` ${showInfo
         ? "max-sm:hidden sm:hidden md:flex md:w-1/2"
@@ -282,7 +282,7 @@ const ChatWindow = ({ paramId, chater, setShowInfo, showInfo, user }) => {
           </div>
         )}
 
-        {messages.map((msg, index) => (
+        {oldMessagesChunk?.isLoading ? <ChatsLoader /> : messages.map((msg, index) => (
           <MessageComponent key={index} msg={msg} user={user} />
         ))}
 
