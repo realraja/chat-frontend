@@ -10,6 +10,8 @@ import { useSocketEvents } from "../../hooks/hook";
 import { useGetMessagesQuery, useSendAttachmentsMutation } from "../../redux/api/api";
 import { PulseLoader, ScaleLoader } from "react-spinners";
 import ChatsLoader from "../loaders/ChatsLoader";
+import sendMessageSound from '../../accets/mixkit-long-pop-2358.wav'; // Make sure this exists
+import reciveMessageSound from '../../accets/Message-notification.mp3'; // Make sure this exists
 
 //==> create group 5:37
 const ChatWindow = ({ paramId, chater, setShowInfo, showInfo, user }) => {
@@ -29,7 +31,7 @@ const ChatWindow = ({ paramId, chater, setShowInfo, showInfo, user }) => {
   const typingStatus = Typing.find(i => i.chatId === paramId);
   const isUserTyping = typingStatus?.typing || false;
   // console.log(isUserTyping);
-
+  const isGroupChat = chater?.groupChat;
   const id = chater?._id;
   const members = chater?.members;
   const OtherMember = chater?.members.find(i => i._id !== user);
@@ -143,7 +145,7 @@ const ChatWindow = ({ paramId, chater, setShowInfo, showInfo, user }) => {
     let messageDate = new Date(messages[messages.length - 1]?.createdAt);
 
     if (showScrollButton) {
-      console.log('object sender')
+      // console.log('object sender')
       if (messages[messages.length - 1]?.sender?._id !== user && (date.getTime() - messageDate.getTime()) < 6000) {
         return setPendingShowMessages(prev => prev + 1);
       } else if ((date.getTime() - messageDate.getTime()) > 6000) {
@@ -260,13 +262,13 @@ const ChatWindow = ({ paramId, chater, setShowInfo, showInfo, user }) => {
       >
         {loadingOldMessages && (
           <div className="text-center text-gray-400"><ScaleLoader
-          color="#ffffff"
-          height={25}
-          margin={2}
-          radius={1}
-          speedMultiplier={3}
-          width={2}
-        /></div>
+            color="#ffffff"
+            height={25}
+            margin={2}
+            radius={1}
+            speedMultiplier={3}
+            width={2}
+          /></div>
         )}
 
         {showScrollButton && (
@@ -283,7 +285,7 @@ const ChatWindow = ({ paramId, chater, setShowInfo, showInfo, user }) => {
         )}
 
         {oldMessagesChunk?.isLoading ? <ChatsLoader /> : messages.map((msg, index) => (
-          <MessageComponent key={index} msg={msg} user={user} />
+          <MessageComponent key={index} msg={msg} user={user} isGroupChat={isGroupChat} />
         ))}
 
         {isUserTyping && (
@@ -302,6 +304,7 @@ const ChatWindow = ({ paramId, chater, setShowInfo, showInfo, user }) => {
           members={members}
           socket={socket}
           setMessages={setMessages}
+          user={user}
         />
       </div>
     </div>
@@ -310,87 +313,126 @@ const ChatWindow = ({ paramId, chater, setShowInfo, showInfo, user }) => {
 
 export default ChatWindow;
 
-const MessageComponent = ({ msg, user }) => (
-  <div
-    className={`mb-4 ${msg.sender._id === user ? "text-right" : ""}`}
-  >
-    {msg.attachments?.length <= 0 || !msg.attachments ? (
-      <p
-        className={`inline-block p-2 max-w-[90%] text-start rounded-lg ${msg.sender === "You" ? "bg-blue-600" : "bg-gray-700"
-          }`}
-      >
-        {msg.content}
-      </p>
-    ) : (
-      msg?.attachments?.map(({ url, _id }) => {
-        // Get the file extension from the URL
-        const extension = url.split('.').pop().toLowerCase();
+const MessageComponent = ({ msg, user, isGroupChat }) => {
+  // console.log(isGroupChat)
+  return (
+    <div
+      className={`mb-6 flex flex-col relative ${msg.sender._id === user ? "items-end" : "items-start"
+        }`}
+    >
+      <div className="flex gap-2">
+        {msg.sender._id !== user && isGroupChat && (
+          <img
+            src={msg?.sender?.avatar}
+            alt={msg?.sender?.name}
+            className="w-8 h-8 rounded-full sticky top-0 shadow-md border border-gray-600 object-cover"
+          />
+        )}
 
-        // Conditional rendering based on file type
-        if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(extension)) {
-          // /dpr_auto/h_200
-          // console.log(url)
-          const smallUrl = url.replace('upload/', `upload/dpr_auto/h_350/`);
-          // For images
-          return (<div key={_id} className="min-h-[250px]">
-            <ModalImage
-              small={smallUrl}
-              large={url}
-              alt="Preview Image"
-              className="inline-block rounded-lg bg-gray-700/50 h-[250px] max-sm:w-[70vw] sm:w-[50%] object-contain my-0.5"
-            />
-          </div>);
-        } else if (['mp3', 'wav', 'webm', 'ogg', 'm4a'].includes(extension)) {
-          // For audio files
-          return (<div key={_id} className="max-h-20">
-            <audio controls className="inline-block h-16 my-2">
-              <source src={url} type={`audio/${extension}`} />
-              Your browser does not support the audio element.
-            </audio>
-          </div>);
-        } else if (['mp4', 'ogg'].includes(extension)) {
-          // For video files
-          return (<div key={_id} className="min-h-[300px]">
-            <video controls className="inline-block h-[300px] my-2">
-              <source src={url} type={`video/${extension}`} />
-              Your browser does not support the video element.
-            </video>
-          </div>);
-        } else {
-          // For other file types (e.g., PDFs, documents, etc.)
-          return (
-            <a
-              key={_id}
-              href={url}
-              target="_blank"
-              rel="noopener noreferrer"
-              download
-              className="inline-flex items-center w-[40%] px-5 py-3 text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-indigo-600 hover:to-purple-600 rounded-lg shadow-lg hover:shadow-xl transition duration-300 ease-in-out transform hover:-translate-y-1"
+        <div
+          className={`gap-1 flex flex-col ${msg.sender._id === user ? "items-end" : "items-start"
+            }`}
+        >
+          {/* Message bubble */}
+          {(!msg.attachments || msg.attachments.length <= 0) ? (
+            <div
+              className={`py-2 px-4 max-w-[85vw] rounded-2xl shadow-md text-white ${msg.sender._id === user ? "bg-gray-800" : "bg-gray-700"
+                }`}
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth="2"
-                stroke="currentColor"
-                className="w-5 h-5 mr-2"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M4 16l8 8m0 0l8-8m-8 8V4"
-                />
-              </svg>
-              Download File
-            </a>
-          );
-        }
-      }))}
-    <p className="text-xs text-gray-400">{moment(msg.createdAt).fromNow()}</p>
-  </div>
-)
+              {msg.sender._id !== user && isGroupChat && (
+                <span className="text-xs font-semibold text-gray-300">
+                  {msg?.sender?.name}
+                </span>
+              )}
+              <p className="text-base break-words whitespace-pre-wrap leading-snug">
+                {msg.content}
+              </p>
+            </div>
+          ) : (
+            <div className="max-w-[85vw]">
+              {msg.sender._id !== user && isGroupChat && (
+                <span className="text-sm font-semibold text-gray-300 mb-1">
+                  {msg?.sender?.name}
+                </span>
+              )}
+              {msg.attachments.map(({ url, _id }) => {
+                const extension = url.split(".").pop().toLowerCase();
 
-const TextMessageComponent = ({ chatId, members, socket, setMessages }) => {
+                if (["jpg", "jpeg", "png", "gif", "webp"].includes(extension)) {
+                  const smallUrl = url.replace("upload/", "upload/dpr_auto/h_350/");
+                  return (
+                    <div key={_id} className="mb-2">
+                      <ModalImage
+                        small={smallUrl}
+                        large={url}
+                        alt="Preview"
+                        className="rounded-xl bg-gray-700/50 h-[250px] max-w-full object-contain shadow-md"
+                      />
+                    </div>
+                  );
+                } else if (["mp3", "wav", "webm", "ogg", "m4a"].includes(extension)) {
+                  return (
+                    <div key={_id} className="mb-2">
+                      <audio controls className="w-full rounded-md bg-gray-800">
+                        <source src={url} type={`audio/${extension}`} />
+                        Your browser does not support the audio element.
+                      </audio>
+                    </div>
+                  );
+                } else if (["mp4", "ogg"].includes(extension)) {
+                  return (
+                    <div key={_id} className="mb-2">
+                      <video controls className="w-full h-[300px] rounded-md bg-black">
+                        <source src={url} type={`video/${extension}`} />
+                        Your browser does not support the video element.
+                      </video>
+                    </div>
+                  );
+                } else {
+                  return (
+                    <a
+                      key={_id}
+                      href={url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      download
+                      className="inline-flex items-center px-5 py-3 text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-indigo-700 hover:to-purple-700 rounded-lg shadow-lg hover:shadow-xl transition duration-300 ease-in-out transform hover:-translate-y-1 mb-2"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        strokeWidth="2"
+                        stroke="currentColor"
+                        className="w-5 h-5 mr-2"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M4 16l8 8m0 0l8-8m-8 8V4"
+                        />
+                      </svg>
+                      Download File
+                    </a>
+                  );
+                }
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Timestamp */}
+      <p className="text-xs text-gray-400 mt-1">
+        {moment(msg.createdAt).fromNow()}
+      </p>
+    </div>
+
+
+  )
+}
+
+const TextMessageComponent = ({ chatId, members, socket, setMessages, user }) => {
 
   const [message, setMessage] = useState("");
   const [recordingTime, setRecordingTime] = useState(0);
@@ -406,6 +448,7 @@ const TextMessageComponent = ({ chatId, members, socket, setMessages }) => {
   const intervalIdRef = useRef(null);
   const streamRef = useRef(null);
   const typingTimeoutRef = useRef(null);
+
 
   const [sendAttachments] = useSendAttachmentsMutation();
 
@@ -574,11 +617,32 @@ const TextMessageComponent = ({ chatId, members, socket, setMessages }) => {
     setMessage('');
   }
 
+  // const newMessageHandler = useCallback((data) => {
+  //   // console.log(data);
+  //   if (data.chatId !== chatId) return;
+  //   setMessages((prev) => [...prev, data.message])
+  // }, [chatId]);
+
+
+  const { messageSendSound, messageRciveSound } = useChatSounds();
+
   const newMessageHandler = useCallback((data) => {
-    // console.log(data);
     if (data.chatId !== chatId) return;
-    setMessages((prev) => [...prev, data.message])
-  }, [chatId]);
+
+    setMessages((prev) => [...prev, data.message]);
+
+    // 💬 Play only if audio is initialized
+    const isSelf = data?.message?.sender?._id === user;
+
+    const soundToPlay = isSelf ? messageSendSound : messageRciveSound;
+
+    if (soundToPlay) {
+      soundToPlay.currentTime = 0; // rewind for rapid use
+      soundToPlay.play().catch((err) => {
+        console.warn("Sound blocked:", err.message);
+      });
+    }
+  }, [chatId, messageSendSound, messageRciveSound, user]);
 
 
 
@@ -831,6 +895,26 @@ const TextMessageComponent = ({ chatId, members, socket, setMessages }) => {
 
 
 
+const useChatSounds = () => {
+  const [messageSendSound, setSendSound] = useState(null);
+  const [messageRciveSound, setReceiveSound] = useState(null);
+
+  useEffect(() => {
+    const init = () => {
+      setSendSound(new Audio(sendMessageSound));
+      setReceiveSound(new Audio(reciveMessageSound));
+    };
+
+    // Only initialize sounds on first user click
+    window.addEventListener("click", init, { once: true });
+
+    return () => {
+      window.removeEventListener("click", init);
+    };
+  }, []);
+
+  return { messageSendSound, messageRciveSound };
+};
 
 
 
