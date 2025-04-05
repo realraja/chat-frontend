@@ -349,7 +349,8 @@ const MessageComponent = ({ msg, user, isGroupChat }) => {
               </p>
             </div>
           ) : (
-            <div className="max-w-[85vw]">
+            <div className={`max-w-[85vw] flex flex-col ${msg.sender._id === user ? "items-end" : "items-start"
+        }`}>
               {msg.sender._id !== user && isGroupChat && (
                 <span className="text-sm font-semibold text-gray-300 mb-1">
                   {msg?.sender?.name}
