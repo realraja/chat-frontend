@@ -12,6 +12,7 @@ import { incrementNotification, setNewMessageAleart, setNewMessageAleartSidebarR
 import { useSocketEvents } from '../hooks/hook'
 import { GetSoket } from '../socket/socket'
 import { RiseLoader } from 'react-spinners'
+import notificationSound from '../accets/Message-notification.mp3';
 
 const Home = () => {
   const [userInfoShow, setUserInfoShow] = useState(false);
@@ -46,12 +47,24 @@ const Home = () => {
   // console.log(isLoading)
   // if(Object.keys(chatData).length !== 0) console.log(chatData);
 
+  const { getNotificationSound } = useNotificationSounds();
+
 
   const newMessageAlertHandler = useCallback((data) => {
     dispatch(setNewMessageAleartSidebarRefetch(data));
     if(data?.chatId === id) return;
     dispatch(setNewMessageAleart(data));
+    if(getNotificationSound){
+      getNotificationSound.currentTime = 0; // rewind for rapid use
+      getNotificationSound.play().catch((err) => {
+        console.warn("Sound blocked:", err.message);
+      });
+    }
+  
   },[id]);
+
+
+
   const newRequesetHandler = useCallback(() => {dispatch(incrementNotification())},[]);
     const startOrStopTypingListener = useCallback((data) => {
       if(user === data.user) return;
@@ -87,3 +100,25 @@ const Home = () => {
 }
 
 export default Home
+
+
+
+
+const useNotificationSounds = () => {
+  const [getNotificationSound, setGetNotificationSound] = useState(null);
+
+  useEffect(() => {
+    const init = () => {
+      setGetNotificationSound(new Audio(notificationSound));
+    };
+
+    // Only initialize sounds on first user click
+    window.addEventListener("click", init, { once: true });
+
+    return () => {
+      window.removeEventListener("click", init);
+    };
+  }, []);
+
+  return { getNotificationSound };
+};

@@ -11,7 +11,10 @@ import { useGetMessagesQuery, useSendAttachmentsMutation } from "../../redux/api
 import { PulseLoader, ScaleLoader } from "react-spinners";
 import ChatsLoader from "../loaders/ChatsLoader";
 import sendMessageSound from '../../accets/mixkit-long-pop-2358.wav'; // Make sure this exists
-import reciveMessageSound from '../../accets/Message-notification.mp3'; // Make sure this exists
+import reciveMessageSound from '../../accets/notification-2-269292.mp3'; // Make sure this exists
+import ConfirmUserDialog from "../Dialogs/UserProfile";
+import { config, server } from "../../constants/config";
+import axios from "axios";
 
 //==> create group 5:37
 const ChatWindow = ({ paramId, chater, setShowInfo, showInfo, user }) => {
@@ -22,7 +25,8 @@ const ChatWindow = ({ paramId, chater, setShowInfo, showInfo, user }) => {
   const [totalPages, setTotalPages] = useState(1);
   const [loadingOldMessages, setLoadingOldMessages] = useState(false);
   const [showScrollButton, setShowScrollButton] = useState(false);
-  const [pendingShowMessages, setPendingShowMessages] = useState(0)
+  const [pendingShowMessages, setPendingShowMessages] = useState(0);
+  const [showViewProfile, setShowViewProfile] = useState({});
   // const [isUserTyping, setIsUserTyping] = useState(false);
 
   const { Typing, onlineUsers } = useSelector((state) => state.chat);
@@ -194,9 +198,36 @@ const ChatWindow = ({ paramId, chater, setShowInfo, showInfo, user }) => {
   //   }
   // };
 
-  return (
-    <div
-      className={` ${showInfo
+
+
+
+
+
+
+
+
+  const viewProfile = async(userData) => {
+
+    try {
+          const { data } = await axios.get(
+            `${server}/chat/check-friend/${userData._id}`,
+            config
+          );
+          console.log(data);
+          setShowViewProfile({...userData, isFriend: data?.data?.isFriend,chatId: data?.data?.chatId}); 
+        } catch (error) {
+          console.log(error);
+          toast.error(error.message);
+        }
+  }
+
+
+
+
+
+
+  return (<>
+    <div className={` ${showInfo
         ? "max-sm:hidden sm:hidden md:flex md:w-1/2"
         : "max-sm:w-full sm:w-full md:w-3/4"
         } h-[calc(100dvh)] flex flex-col bg-gray-900 text-white relative ${paramId ? "" : "max-sm:hidden sm:hidden md:flex"
@@ -285,7 +316,7 @@ const ChatWindow = ({ paramId, chater, setShowInfo, showInfo, user }) => {
         )}
 
         {oldMessagesChunk?.isLoading ? <ChatsLoader /> : messages.map((msg, index) => (
-          <MessageComponent key={index} msg={msg} user={user} isGroupChat={isGroupChat} />
+          <MessageComponent key={index} msg={msg} user={user} isGroupChat={isGroupChat} viewProfile={viewProfile} />
         ))}
 
         {isUserTyping && (
@@ -308,12 +339,18 @@ const ChatWindow = ({ paramId, chater, setShowInfo, showInfo, user }) => {
         />
       </div>
     </div>
+    <ConfirmUserDialog
+  confirmState={showViewProfile}
+  setConfirmState={setShowViewProfile}
+/>
+
+    </>
   );
 };
 
 export default ChatWindow;
 
-const MessageComponent = ({ msg, user, isGroupChat }) => {
+const MessageComponent = ({ msg, user, isGroupChat ,viewProfile}) => {
   // console.log(isGroupChat)
   return (
     <div
@@ -323,9 +360,10 @@ const MessageComponent = ({ msg, user, isGroupChat }) => {
       <div className="flex gap-2">
         {msg.sender._id !== user && isGroupChat && (
           <img
+          onClick={()=> viewProfile(msg?.sender)}
             src={msg?.sender?.avatar}
             alt={msg?.sender?.name}
-            className="w-8 h-8 rounded-full sticky top-0 shadow-md border border-gray-600 object-cover"
+            className="w-8 h-8 cursor-pointer rounded-full sticky top-0 shadow-md border border-gray-600 object-cover"
           />
         )}
 
@@ -336,7 +374,7 @@ const MessageComponent = ({ msg, user, isGroupChat }) => {
           {/* Message bubble */}
           {(!msg.attachments || msg.attachments.length <= 0) ? (
             <div
-              className={`py-2 px-4 max-w-[85vw] rounded-2xl shadow-md text-white ${msg.sender._id === user ? "bg-gray-800" : "bg-gray-700"
+              className={`py-2 px-4 max-sm:max-w-64 max-w-96 rounded-2xl shadow-md text-white ${msg.sender._id === user ? "bg-gray-800" : "bg-gray-700"
                 }`}
             >
               {msg.sender._id !== user && isGroupChat && (
@@ -349,7 +387,7 @@ const MessageComponent = ({ msg, user, isGroupChat }) => {
               </p>
             </div>
           ) : (
-            <div className={`max-w-[85vw] flex flex-col ${msg.sender._id === user ? "items-end" : "items-start"
+            <div className={`max-sm:max-w-64 max-w-96 flex flex-col ${msg.sender._id === user ? "items-end" : "items-start"
         }`}>
               {msg.sender._id !== user && isGroupChat && (
                 <span className="text-sm font-semibold text-gray-300 mb-1">
@@ -372,12 +410,13 @@ const MessageComponent = ({ msg, user, isGroupChat }) => {
                     </div>
                   );
                 } else if (["mp3", "wav", "webm", "ogg", "m4a"].includes(extension)) {
+                  console.log(extension,url);
                   return (
                     <div key={_id} className="mb-2">
-                      <audio controls className="w-full rounded-md bg-gray-800">
-                        <source src={url} type={`audio/${extension}`} />
-                        Your browser does not support the audio element.
-                      </audio>
+                        <audio controls className="inline-block h-16 my-2">
+              <source src={url} type={`audio/${extension}`} />
+              Your browser does not support the audio element.
+            </audio>
                     </div>
                   );
                 } else if (["mp4", "ogg"].includes(extension)) {

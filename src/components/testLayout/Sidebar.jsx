@@ -313,7 +313,7 @@ const ChatListComponent = ({pendings,dispatch, avatar, _id, name, typing, groupC
     <li className={`mb-1 min-h-16 cursor-pointer hover:bg-gray-950 ${_id === chatId && 'bg-gray-950'} p-2 rounded flex items-center`} 
     onClick={() => { navigate("/chat/" + _id); handleOnClickChat(_id); }}>
       <div className="flex relative z-0">
-      <img src={avatar} alt="avatar" className="w-10 h-10 rounded-full mr-4 object-cover" />
+      <img src={avatar} alt="avatar" className="min-w-10 h-10 rounded-full mr-4 object-cover" />
       {isOnline && !groupChat && <><span className="size-3 bg-green-400 absolute top-0 right-2 rounded-full" ></span>
         <span className="size-3 bg-green-400 absolute top-0 right-2 rounded-full animate-ping" ></span></>}
         
@@ -339,7 +339,7 @@ const ChatListComponent = ({pendings,dispatch, avatar, _id, name, typing, groupC
               margin={3}
               size={3}
             />
-          </p>:<p className="text-sm text-gray-400 flex items-center">{notificationAlertMessage}</p>}
+          </p>:<p className="text-sm text-gray-400 overflow-hidden flex items-center">{notificationAlertMessage}</p>}
           
         </div>
         <p className={`text-xs bg-rose-700 rounded-full ${notificationAlertCount <= 99 ? notificationAlertCount <= 9 ? notificationAlertCount <= 0 ? "hidden" : 'px-2.5 py-1.5' : 'px-2 py-1.5' : 'px-1 py-1.5'} text-center flex justify-center items-center`}>{notificationAlertCount}</p>
